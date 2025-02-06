@@ -4,6 +4,7 @@ import Streamio from './Streamio';
 import localFont from 'next/font/local';
 import Search from './Search';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BackendContext } from './Main';
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 
@@ -36,7 +37,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="m-1"><div className="avatar h-9 w-9">
                             <div class="ring-primary ring-offset-accent w-20 rounded-full ring ring-offset-2">
-                                <img src={backendData?.userData?.avatar} alt={backendData?.userData?.username} />
+                                <Image fill style={{ objectFit: 'cover' }} src={backendData?.userData?.avatar} alt={backendData?.userData?.username} />
                             </div>
                         </div></div>
                         <ul tabIndex={0} className="dropdown-content backdrop-blur-[1rem] menu bg-primary/10 text-secondary rounded-box z-[1] w-40 p-2 shadow">

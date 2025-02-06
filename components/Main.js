@@ -83,7 +83,6 @@ const Main = (props) => {
             username: '',
             password: ''
         });
-        console.log(response.data);
         // Perform fetch/axios call here using formData
     };
 
@@ -95,7 +94,6 @@ const Main = (props) => {
         e.preventDefault();
         const response = await axios.get(`/api/global-search?search=${searchValue}`);
         setSearchResults(response.data.data.results);
-        console.log(response.data);
     };
 
     useEffect(() => {
@@ -103,7 +101,6 @@ const Main = (props) => {
             if (isLoggedIn) {
                 const response = await axios.get(`/api/dashboard`);
                 setHomeFeed(response.data.data.videos);
-                console.log(response.data.data);
             }
         })()
     }, [isLoggedIn])
@@ -125,22 +122,7 @@ const Main = (props) => {
         }
     };
 
-    // useEffect(() => {
-    //     (async () => {
-
-    //     })();
-    // }, [searchQuery]);
-
-    // useEffect(() => {
-    //     console.log(searchResult);
-    // }, [searchResult]);
-
-    // useEffect(() => {
-    //     (async () => {
-    //         const health = await axios.get(`${props.BACKEND_API}/healthcheck`);
-    //         console.log(health?.data?.message);
-    //     })()
-    // }, []);
+   
 
     return (
         <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange }}>
