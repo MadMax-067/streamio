@@ -20,6 +20,8 @@ const Main = (props) => {
     const [searchValue, setSearchValue] = useState("");
     const [isLogging, setIsLogging] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState('');
     const loginRef = useRef(null);
     const signUpRef = useRef(null);
     const [loginFormData, setLoginFormData] = useState({
@@ -27,25 +29,28 @@ const Main = (props) => {
         username: '',
         password: ''
     });
+    const [signupFormData, setSignupFormData] = useState({
+        fullName: '',
+        email: '',
+        username: '',
+        password: '',
+        avatar: null
+    });
 
 
     useEffect(() => {
         const checkAuth = async () => {
-            try {
-                const { data } = await axios.get('/api/users/current-user', { withCredentials: true });
-                if (data.success) {
-                    setIsLoggedIn(true);
-                    setUserData(data.data);
-                } else {
-                    setIsLoggedIn(false);
-                }
-            } catch (err) {
-                console.error(err);
+            const { data } = await axios.get('/api/users/current-user', { withCredentials: true });
+            if (data.success) {
+                setIsLoggedIn(true);
+                setUserData(data.data);
+            } else {
+                console.log(data.message);
                 setIsLoggedIn(false);
             }
         };
         checkAuth();
-    }, []);
+    }, [isLoggedIn]);
 
     const handleClickOutside = (event) => {
         if (loginRef.current && loginRef.current.contains(event.target)) return;
@@ -67,6 +72,7 @@ const Main = (props) => {
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         const response = await axios.post(`/api/users/login`, {
             username: loginFormData.username,
             email: loginFormData.email,
@@ -75,15 +81,57 @@ const Main = (props) => {
             withCredentials: true
         });
         if (response.data.success) {
+            setMessage(response.data.message);
             setIsLogging(false)
             setIsLoggedIn(true);
+        }else{
+            setMessage(response.data.message);
         }
         setLoginFormData({
             email: '',
             username: '',
             password: ''
         });
-        // Perform fetch/axios call here using formData
+        setIsLoading(false);
+    };
+
+    const handleSignupChange = (e) => {
+        const { name, value, files } = e.target;
+        setSignupFormData(prevData => ({
+            ...prevData,
+            [name]: files ? files[0] : value
+        }));
+    };
+
+    const handleSignupSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        const submissionData = new FormData();
+        submissionData.append('fullName', signupFormData.fullName);
+        submissionData.append('email', signupFormData.email);
+        submissionData.append('username', signupFormData.username);
+        submissionData.append('password', signupFormData.password);
+        submissionData.append('avatar', signupFormData.avatar);
+
+        const { data } = await axios.post('/api/users/register', submissionData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        setSignupFormData({
+            fullName: '',
+            email: '',
+            username: '',
+            password: '',
+            avatar: null
+        });
+        if (data.success) {
+            setMessage(data.message);
+            console.log('Signup response:', data);
+        } else {
+            setMessage(data.message);
+        }
+        setIsLoading(false);
     };
 
     const handleSearchChange = (e) => {
@@ -122,10 +170,10 @@ const Main = (props) => {
         }
     };
 
-   
+
 
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message }}>
             <main className='grid'>
                 <Navbar />
                 <AnimatePresence>

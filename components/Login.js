@@ -42,8 +42,11 @@ const Login = () => {
                         onChange={backendData.handleLoginChange}
                     />
                 </div>
-                <button className="sign bg-primary text-secondary mt-4">Login</button>
+                <button type="submit" className="sign bg-primary text-secondary mt-4" disabled={backendData.isLoading} >
+                    {backendData.isLoading ? 'Logging in...' : 'Login'}
+                </button>
             </form>
+            {backendData.message && <div className="message">{backendData.message}</div>}
             <p className="signup mt-3">Don't have an account?
                 <a rel="noopener noreferrer" href="#" className>Sign up</a>
             </p>
