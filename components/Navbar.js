@@ -5,7 +5,7 @@ import localFont from 'next/font/local';
 import Search from './Search';
 import Link from 'next/link';
 import Image from 'next/image';
-import { BackendContext } from './Main';
+import { BackendContext } from './Providers';
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 
 const Navbar = ({ setIsRegistering, setIsLogging }) => {

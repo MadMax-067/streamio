@@ -1,6 +1,6 @@
 "use client"
 import React, { useContext, useRef, useState, useEffect } from 'react'
-import { BackendContext } from './Main';
+import { BackendContext } from './Providers';
 import SearchIcon from './SearchIcon';
 
 const Search = () => {

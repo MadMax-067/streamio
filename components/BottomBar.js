@@ -3,7 +3,7 @@ import localFont from 'next/font/local';
 import BottomButton from './BottomButton';
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 import { faHouse, faBookBookmark, faClockRotateLeft, faFolderOpen, faVideo, faHeart, faGear } from '@fortawesome/free-solid-svg-icons';
-import { BackendContext } from './Main';
+import { BackendContext } from './Providers';
 import Image from 'next/image';
 
 const BottomBar = () => {
