@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, createContext, useState, useRef } from 'react'
+import React, { useEffect, createContext, useState, useRef, use } from 'react'
 import axios from 'axios';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -24,6 +24,8 @@ const Main = (props) => {
     const [message, setMessage] = useState('');
     const loginRef = useRef(null);
     const signUpRef = useRef(null);
+    const [homeMessage, setHomeMessage] = useState("");
+    const [homeLoading, setHomeLoading] = useState(false);
     const [loginFormData, setLoginFormData] = useState({
         email: '',
         username: '',
@@ -50,7 +52,7 @@ const Main = (props) => {
             }
         };
         checkAuth();
-    }, [isLoggedIn]);
+    }, []);
 
     const handleClickOutside = (event) => {
         if (loginRef.current && loginRef.current.contains(event.target)) return;
@@ -73,25 +75,34 @@ const Main = (props) => {
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        const response = await axios.post(`/api/users/login`, {
-            username: loginFormData.username,
-            email: loginFormData.email,
-            password: loginFormData.password
-        }, {
-            withCredentials: true
-        });
-        if (response.data.success) {
-            setMessage(response.data.message);
-            setIsLogging(false)
-            setIsLoggedIn(true);
-        }else{
-            setMessage(response.data.message);
+        try {
+            const response = await axios.post(`/api/users/login`, {
+                username: loginFormData.username,
+                email: loginFormData.email,
+                password: loginFormData.password
+            }, {
+                withCredentials: true
+            });
+            if (response.data.success) {
+                setMessage(response.data.message);
+                setUserData(response?.data?.data?.user);
+                setIsLogging(false);
+                setIsLoggedIn(true);
+            } else {
+                setIsLoggedIn(false);
+                setMessage(response.data.message);
+            }
+            setLoginFormData({
+                email: '',
+                username: '',
+                password: ''
+            });
+        } catch (error) {
+            setMessage(error.response?.data?.message || 'Login failed. Please try again.');
+            setIsLoggedIn(false);
+        } finally {
+            setIsLoading(false);
         }
-        setLoginFormData({
-            email: '',
-            username: '',
-            password: ''
-        });
         setIsLoading(false);
     };
 
@@ -113,23 +124,29 @@ const Main = (props) => {
         submissionData.append('password', signupFormData.password);
         submissionData.append('avatar', signupFormData.avatar);
 
-        const { data } = await axios.post('/api/users/register', submissionData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+        try {
+            const { data } = await axios.post('/api/users/register', submissionData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            setSignupFormData({
+                fullName: '',
+                email: '',
+                username: '',
+                password: '',
+                avatar: null
+            });
+            if (data.success) {
+                setMessage("User registered successfully, verify your email to continue.");
+            } else {
+                setMessage(data.message);
             }
-        });
-        setSignupFormData({
-            fullName: '',
-            email: '',
-            username: '',
-            password: '',
-            avatar: null
-        });
-        if (data.success) {
-            setMessage(data.message);
-            console.log('Signup response:', data);
-        } else {
-            setMessage(data.message);
+        } catch (error) {
+            setMessage(error.response?.data?.message || 'Signup failed. Please try again.');
+            setIsLoading(false);
+        } finally {
+            setIsLoading(false);
         }
         setIsLoading(false);
     };
@@ -146,9 +163,16 @@ const Main = (props) => {
 
     useEffect(() => {
         (async () => {
-            if (isLoggedIn) {
-                const response = await axios.get(`/api/dashboard`);
-                setHomeFeed(response.data.data.videos);
+            setHomeLoading(true);
+            try {
+                if (isLoggedIn) {
+                    const response = await axios.get(`/api/dashboard`);
+                    setHomeFeed(response.data.data.videos);
+                }
+            } catch (error) {
+                setHomeMessage(error.response?.data?.message || '😥Unable to fetch videos.')
+            } finally {
+                setHomeLoading(false);
             }
         })()
     }, [isLoggedIn])
@@ -170,10 +194,20 @@ const Main = (props) => {
         }
     };
 
+    const onLoginClick = () => {
+        setMessage("");
+        setIsRegistering(false);
+        setIsLogging(true);
+    };
+    const onSignupClick = () => {
+        setMessage("");
+        setIsLogging(false);
+        setIsRegistering(true);
+    };
 
 
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage }}>
             <main className='grid'>
                 <Navbar />
                 <AnimatePresence>

@@ -11,14 +11,7 @@ const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 const Navbar = ({ setIsRegistering, setIsLogging }) => {
     const backendData = useContext(BackendContext);
 
-    const onLoginClick = () => {
-        backendData.setIsRegistering(false);
-        backendData.setIsLogging(true);
-    };
-    const onSignupClick = () => {
-        backendData.setIsLogging(false);
-        backendData.setIsRegistering(true);
-    };
+
 
     return (
         <nav className={`${mercenary.className} navbar flex items-center w-full h-[9.25vh]`}>
@@ -28,8 +21,8 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                 </div>
                 <Search />
                 {!backendData.isLoggedIn ? (<div className='flex gap-3' >
-                    <button onClick={onLoginClick} className='btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg border-secondary/30'>Login</button>
-                    <button onClick={onSignupClick} className='btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg'>Sign up</button>
+                    <button onClick={backendData.onLoginClick} className='btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg border-secondary/30'>Login</button>
+                    <button onClick={backendData.onSignupClick} className='btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg'>Sign up</button>
                 </div>) : (<div className='flex items-center justify-end w-[12.8rem]' >
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="m-1"><div className="avatar h-9 w-9 rounded-full">

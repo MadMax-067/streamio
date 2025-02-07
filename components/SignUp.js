@@ -63,7 +63,7 @@ const SignUp = () => {
             </form>
             {backendData.message && <div className="message">{backendData.message}</div>}
             <p className="signup mt-3">Already have an account?
-                <a rel="noopener noreferrer" href="#" className>Login</a>
+                <a className='cursor-pointer' onClick={backendData.onLoginClick} >Login</a>
             </p>
         </div>
     )
