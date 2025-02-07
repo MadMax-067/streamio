@@ -7,6 +7,7 @@ import Hero from './Hero';
 import SignUp from './SignUp';
 import Login from './Login';
 import { motion, AnimatePresence } from "motion/react"
+import BottomBar from './BottomBar';
 
 
 
@@ -24,6 +25,7 @@ const Main = (props) => {
     const [message, setMessage] = useState('');
     const loginRef = useRef(null);
     const signUpRef = useRef(null);
+    const [isSearching, setIsSearching] = useState(false);
     const [homeMessage, setHomeMessage] = useState("");
     const [homeLoading, setHomeLoading] = useState(false);
     const [loginFormData, setLoginFormData] = useState({
@@ -205,9 +207,24 @@ const Main = (props) => {
         setIsRegistering(true);
     };
 
+    // change the data-skill-counton mobile
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Check window only on client side
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        checkScreenSize(); // Initial check
+        window.addEventListener('resize', checkScreenSize);
+
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
 
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching }}>
             <main className='grid'>
                 <Navbar />
                 <AnimatePresence>
@@ -230,8 +247,9 @@ const Main = (props) => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-                <Sidebar />
+                {!isMobile && <Sidebar />}
                 <Hero homeFeed={homeFeed} />
+                {isMobile && <BottomBar />}
             </main>
         </BackendContext.Provider>
     )
