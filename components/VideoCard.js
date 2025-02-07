@@ -87,31 +87,39 @@ const StyledVideoCard = styled.div`
 `;
 
 const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, duration }) => {
+  const router = useRouter();
+
+  // Navigate to /video/[videoId] on click
+  const handleClick = () => {
+    router.push(`/video/${videoId}`);
+  };
+
   return (
     <StyledVideoCard>
-      <Link href={`/video/${videoId}`}>
-        <div className={`${nunito.className} video-card gap-2 flex flex-col justify-between bg-secondary/0 rounded`}>
-          <div className="relative shrink-0 w-full">
-            <Card duration={duration} thumbnail={thumbnail} />
+      <div
+        className={`${nunito.className} video-card gap-2 flex flex-col justify-between bg-secondary/0 rounded`}
+        onClick={handleClick}
+      >
+        <div className="relative shrink-0 w-full">
+          <Card duration={duration} thumbnail={thumbnail} />
+        </div>
+        <div className="video-info">
+          <div className="avatar-container relative rounded-full overflow-hidden">
+            <Image
+              src={avatar}
+              alt={channelName}
+              fill
+              style={{ objectFit: 'cover' }}
+              className="w-full h-full"
+            />
           </div>
-          <div className="video-info">
-            <div className="avatar-container relative rounded-full overflow-hidden">
-              <Image
-                src={avatar}
-                alt={channelName}
-                fill
-                style={{ objectFit: 'cover' }}
-                className="w-full h-full"
-              />
-            </div>
-            <div className="text-container">
-              <h3 className="video-title text-secondary font-semibold">{title}</h3>
-              <h6 className="channel-name">{channelName}</h6>
-              <h6 className="views">{views}</h6>
-            </div>
+          <div className="text-container">
+            <h3 className="video-title text-secondary font-semibold">{title}</h3>
+            <h6 className="channel-name">{channelName}</h6>
+            <h6 className="views">{views}</h6>
           </div>
         </div>
-      </Link>
+      </div>
     </StyledVideoCard>
   )
 }

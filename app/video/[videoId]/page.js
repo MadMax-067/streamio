@@ -2,9 +2,10 @@
 import React, { useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { BackendContext } from '@/components/Providers'
+import ReactPlayer from 'react-player'
 
-const page = async({ params }) => {
-  const slug = (await params).videoId;
+export default function Page({ params }) {
+  const slug = params.videoId
   const backendData = useContext(BackendContext)
   const [videoUrl, setVideoUrl] = useState('')
 
@@ -20,15 +21,24 @@ const page = async({ params }) => {
   }, [slug])
 
   return (
-    <main className="grid">
-      <iframe
-        src={videoUrl}
-        frameBorder="0"
-        allowFullScreen
-        className="w-full h-[75vh]"
-      />
+    <main className="grid place-items-center bg-primary">
+      <div className="w-full max-w-[1280px] aspect-video">
+        <ReactPlayer
+          url={videoUrl}
+          controls
+          width="100%"
+          height="100%"
+          playing
+          config={{
+            file: {
+              attributes: {
+                controlsList: 'nodownload', // Disable download button
+                disablePictureInPicture: true // Disable PiP
+              }
+            }
+          }}
+        />
+      </div>
     </main>
   )
 }
-
-export default page
