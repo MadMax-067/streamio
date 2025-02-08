@@ -259,6 +259,11 @@ export default function Page({ params }) {
     return count
   }
 
+  const handleError = (error) => {
+    console.error("Video playback error:", error)
+    // Show user-friendly error message
+  }
+
   return (
     <div className="min-h-screen text-secondary">
       <div className="container mx-auto py-6 px-4">
@@ -275,13 +280,17 @@ export default function Page({ params }) {
               height="100%"
               onProgress={handleProgress}
               onDuration={setDuration}
+              onError={handleError}
               config={{
                 file: {
                   attributes: {
                     controlsList: "nodownload",
                     disablePictureInPicture: true,
                   },
-                },
+                  forceVideo: true,
+                  forceHLS: false,
+                  forceDASH: false,
+                }
               }}
             />
 
