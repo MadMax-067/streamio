@@ -260,8 +260,30 @@ export default function Page({ params }) {
   }
 
   const handleError = (error) => {
-    console.error("Video playback error:", error)
+    console.error("Video playback error:", error);
+    
     // Show user-friendly error message
+    if (videoUrl?.endsWith('.mkv')) {
+      console.warn("MKV playback might not be supported in this browser. Consider converting to MP4 or WebM format.");
+    }
+    
+    // You can add UI feedback here
+    // setError("This video format might not be supported in your browser");
+  }
+
+  // Add this helper function in your component
+  const getVideoType = (url) => {
+    const extension = url.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'mkv':
+        return 'video/x-matroska';
+      case 'mp4':
+        return 'video/mp4';
+      case 'webm':
+        return 'video/webm';
+      default:
+        return 'video/mp4';
+    }
   }
 
   return (
@@ -286,10 +308,18 @@ export default function Page({ params }) {
                   attributes: {
                     controlsList: "nodownload",
                     disablePictureInPicture: true,
+                    type: getVideoType(videoUrl)
                   },
                   forceVideo: true,
                   forceHLS: false,
                   forceDASH: false,
+                  // Add these configurations for better MKV support
+                  forceAudio: true,
+                  forceSafariHLS: true,
+                  hlsOptions: {
+                    enableWorker: true,
+                    debug: false,
+                  },
                 }
               }}
             />
