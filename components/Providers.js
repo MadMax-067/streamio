@@ -5,6 +5,38 @@ import Navbar from './Navbar';
 
 export const BackendContext = createContext();
 
+// Add axios interceptor setup
+axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If the error is 401 and we haven't tried to refresh the token yet
+        if (error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Try to refresh the token
+                const response = await axios.post('/api/users/refresh-token', {}, {
+                    withCredentials: true
+                });
+
+                if (response.data.success) {
+                    // Retry the original request
+                    return axios(originalRequest);
+                }
+            } catch (refreshError) {
+                // If refresh token is also expired, logout the user
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+
 export default function Providers({ children }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userData, setUserData] = useState(null);
@@ -32,18 +64,71 @@ export default function Providers({ children }) {
     });
 
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            const { data } = await axios.get('/api/users/current-user', { withCredentials: true });
+    const checkAuth = async () => {
+        try {
+            // First try to get current user with existing access token
+            const { data } = await axios.get('/api/users/current-user', {
+                withCredentials: true
+            });
+            
             if (data.success) {
                 setIsLoggedIn(true);
                 setUserData(data.data);
-            } else {
-                console.log(data.message);
-                setIsLoggedIn(false);
+                return;
             }
+            
+            // If that fails with 401, try to refresh the token
+            const refreshResponse = await axios.post('/api/users/refresh-token', {}, {
+                withCredentials: true
+            });
+            
+            if (refreshResponse.data.success) {
+                // Try getting user data again with new token
+                const newUserResponse = await axios.get('/api/users/current-user', {
+                    withCredentials: true
+                });
+                
+                if (newUserResponse.data.success) {
+                    setIsLoggedIn(true);
+                    setUserData(newUserResponse.data.data);
+                    return;
+                }
+            }
+            
+            // If all attempts fail, ensure user is logged out
+            setIsLoggedIn(false);
+            setUserData(null);
+            
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            setIsLoggedIn(false);
+            setUserData(null);
+            
+            // Redirect to login if token refresh fails
+            if (error.response?.status === 401) {
+                window.location.href = '/login';
+            }
+        }
+    };
+    
+    // Use it in useEffect with proper cleanup
+    useEffect(() => {
+        let mounted = true;
+    
+        const performAuthCheck = async () => {
+            if (!mounted) return;
+            await checkAuth();
         };
-        checkAuth();
+    
+        performAuthCheck();
+    
+        // Optional: Set up periodic token refresh
+        const refreshInterval = setInterval(performAuthCheck, 1000 * 60 * 60); // Check every hour
+    
+        return () => {
+            mounted = false;
+            clearInterval(refreshInterval);
+        };
     }, []);
 
 
@@ -168,11 +253,12 @@ export default function Providers({ children }) {
             });
             if (data.success) {
                 setIsLoggedIn(false);
+                setUserData(null);
             } else {
                 alert(data.message);
             }
         } catch (error) {
-            console.log(error);
+            console.error('Logout failed:', error);
         }
     };
 
@@ -187,7 +273,7 @@ export default function Providers({ children }) {
         setIsRegistering(true);
     };
 
-    // change the data-skill-counton mobile
+    // change UI on mobile
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -202,41 +288,8 @@ export default function Providers({ children }) {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const onVideoClick = (vidId) => {
-        // setIsLoading(true);
-        // try {
-        //     const { data } = await axios.post(`/api/users/login`, {
-        //         username: loginFormData.username,
-        //         email: loginFormData.email,
-        //         password: loginFormData.password
-        //     }, {
-        //         withCredentials: true
-        //     });
-        //     if (response.data.success) {
-        //         setMessage(response.data.message);
-        //         setUserData(response?.data?.data?.user);
-        //         setIsLogging(false);
-        //         setIsLoggedIn(true);
-        //     } else {
-        //         setIsLoggedIn(false);
-        //         setMessage(response.data.message);
-        //     }
-        //     setLoginFormData({
-        //         email: '',
-        //         username: '',
-        //         password: ''
-        //     });
-        // } catch (error) {
-        //     setMessage(error.response?.data?.message || 'Login failed. Please try again.');
-        //     setIsLoggedIn(false);
-        // } finally {
-        //     setIsLoading(false);
-        // }
-        // setIsLoading(false);
-    };
-
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed, onVideoClick }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed }}>
             <Navbar />
             {children}
         </BackendContext.Provider>
