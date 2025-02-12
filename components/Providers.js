@@ -27,7 +27,8 @@ axios.interceptors.response.use(
                 }
             } catch (refreshError) {
                 // If refresh token is also expired, logout the user
-                window.location.href = '/login';
+                setIsLoggedIn(false);
+                setUserData(null);
                 return Promise.reject(refreshError);
             }
         }
@@ -103,11 +104,6 @@ export default function Providers({ children }) {
             console.error('Auth check failed:', error);
             setIsLoggedIn(false);
             setUserData(null);
-            
-            // Redirect to login if token refresh fails
-            if (error.response?.status === 401) {
-                window.location.href = '/login';
-            }
         }
     };
     
