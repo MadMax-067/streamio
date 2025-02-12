@@ -46,6 +46,12 @@ body {
   color: rgba(243, 244, 246, 1);
 }
 
+@media (max-width: 768px) {
+  .form-container {
+    background-color: rgba(17, 24, 39, 1);
+  }
+}
+
 .title {
   text-align: center;
   font-size: 1.5rem;
