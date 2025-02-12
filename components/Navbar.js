@@ -33,8 +33,10 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                             </div>
                         </div>
                         <ul tabIndex={0} className="dropdown-content backdrop-blur-[1rem] menu bg-primary/10 text-secondary rounded-box z-[1] w-40 p-2 shadow">
-                            <li><a>Profile</a></li>
-                            <li><a onClick={backendData.logoutHandle} >Logout</a></li>
+                            <li>
+                                <Link href={`/profile/${backendData?.userData?.username}`}>Profile</Link>
+                            </li>
+                            <li><a onClick={backendData.logoutHandle}>Logout</a></li>
                         </ul>
                     </div>
                 </div>))}
