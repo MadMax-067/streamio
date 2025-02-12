@@ -11,7 +11,7 @@ import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
 
 export default function ProfilePage() {
-  const { isLoggedIn, onLoginClick, onSignupClick, isLogging, isRegistering, setIsLogging, setIsRegistering } = useContext(BackendContext)
+  const backendData = useContext(BackendContext)
   const [profileData, setProfileData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -21,10 +21,12 @@ export default function ProfilePage() {
   const signUpRef = useRef(null)
 
   const handleClickOutside = (event) => {
-    if (loginRef.current && loginRef.current.contains(event.target)) return
-    if (signUpRef.current && signUpRef.current.contains(event.target)) return
-    setIsLogging(false)
-    setIsRegistering(false)
+    if (loginRef.current && !loginRef.current.contains(event.target)) {
+      backendData.setIsLogging(false)
+    }
+    if (signUpRef.current && !signUpRef.current.contains(event.target)) {
+      backendData.setIsRegistering(false)
+    }
   }
 
   useEffect(() => {
@@ -47,25 +49,52 @@ export default function ProfilePage() {
     fetchProfile()
   }, [params.username])
 
-  if (!isLoggedIn) {
+  if (!backendData.isLoggedIn) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-        <h1 className="text-2xl font-bold mb-4">Please login to view profiles</h1>
-        <div className="flex gap-4">
-          <Button 
-            onClick={onLoginClick} 
-            className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
-          >
-            Login
-          </Button>
-          <Button 
-            onClick={onSignupClick} 
-            className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
-          >
-            Sign up
-          </Button>
+      <>
+        <AnimatePresence>
+          {backendData.isLogging && (
+            <motion.div 
+              ref={loginRef}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixedBox'
+            >
+              <Login />
+            </motion.div>
+          )}
+          {backendData.isRegistering && (
+            <motion.div 
+              ref={signUpRef}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixedBox'
+            >
+              <SignUp />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+          <h1 className="text-2xl font-bold mb-4">Please login to view profiles</h1>
+          <div className="flex gap-4">
+            <Button 
+              onClick={backendData.onLoginClick} 
+              className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={backendData.onSignupClick} 
+              className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
+            >
+              Sign up
+            </Button>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
@@ -98,7 +127,7 @@ export default function ProfilePage() {
   return (
     <>
       <AnimatePresence>
-        {isLogging && (
+        {backendData.isLogging && (
           <motion.div 
             ref={loginRef}
             key="loginModal"
@@ -108,7 +137,7 @@ export default function ProfilePage() {
             <Login />
           </motion.div>
         )}
-        {isRegistering && (
+        {backendData.isRegistering && (
           <motion.div 
             ref={signUpRef}
             key="signUpModal"
