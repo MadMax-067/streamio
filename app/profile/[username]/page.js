@@ -1,5 +1,5 @@
 "use client"
-import { useContext, useEffect, useState, useRef, useRouter } from 'react'
+import { useContext, useEffect, useState, useRef } from 'react'
 import { BackendContext } from '@/components/Providers'
 import axios from 'axios'
 import Image from 'next/image'
@@ -16,7 +16,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const params = useParams()
-  const router = useRouter()
 
   const loginRef = useRef(null)
   const signUpRef = useRef(null)
