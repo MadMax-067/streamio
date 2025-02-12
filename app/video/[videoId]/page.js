@@ -25,9 +25,28 @@ import {
   ChevronUp,
   MoreVertical,
   MessageSquare,
+  Share,
+  Flag,
+  Download,
+  PlaySquare,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
-export default function Page({ params }) {
+export default function VideoPage({ params }) {
   const playerRef = useRef(null)
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(1)
@@ -40,89 +59,94 @@ export default function Page({ params }) {
   const [isDisliked, setIsDisliked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
-  const [comments, setComments] = useState([]) // Changed from initialComments to empty array
+  const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState("")
-  const [likes, setLikes] = useState(15420)
-  const [dislikes, setDislikes] = useState(123)
+  const [likes, setLikes] = useState(0)
+  const [dislikes, setDislikes] = useState(0)
   const slug = params.videoId
   const backendData = useContext(BackendContext)
   const [videoUrl, setVideoUrl] = useState("")
   const [videoData, setVideoData] = useState(null)
   const [commentLikes, setCommentLikes] = useState({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [playlists, setPlaylists] = useState([])
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false)
+  const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' })
+  const [showShareDialog, setShowShareDialog] = useState(false)
 
   useEffect(() => {
-    if (!slug) return
-    
-    // Fetch the video
-    axios
-      .get(`/api/videos/${slug}`)
-      .then((response) => {
-        const data = response.data?.data
-        setVideoUrl(data?.videoFile || "")
-        setVideoData(data)
-        // Set initial like state based on API data
-        setIsLiked(data?.isLiked || false)
-        setLikes(data?.likesCount || 0)
-      })
-      .catch(console.error)
+    const fetchVideoData = async () => {
+      if (!slug) return
+      setIsLoading(true)
+      try {
+        const videoResponse = await axios.get(`/api/videos/${slug}`)
+        const videoData = videoResponse.data?.data
+        setVideoUrl(videoData?.videoFile || "")
+        setVideoData(videoData)
+        setIsLiked(videoData?.isLiked || false)
+        setLikes(videoData?.likesCount || 0)
+        setDislikes(videoData?.dislikesCount || 0)
+      } catch (error) {
+        console.error('Video fetch error:', error)
+        setError("Failed to load video. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    // Fetch comments
-    axios
-      .get(`/api/comments/${slug}`)
-      .then((response) => {
-        const fetchedComments = response.data?.data?.comments || []
+    const fetchComments = async () => {
+      if (!slug) return
+      try {
+        const commentsResponse = await axios.get(`/api/comments/${slug}`)
+        const fetchedComments = commentsResponse.data?.data?.comments || []
         const mappedComments = fetchedComments.map((item) => ({
           id: item._id,
           user: item.owner?.fullName || item.owner?.username || "Unknown User",
           avatar: item.owner?.avatar || "/placeholder.svg?height=40&width=40",
           content: item.content,
-          likes: item.likesCount || 0, // Add likes count
-          isLiked: item.isLiked || false, // Add liked state
+          likes: item.likesCount || 0,
+          isLiked: item.isLiked || false,
           timestamp: new Date(item.createdAt).toLocaleString(),
           replies: [],
         }))
         setComments(mappedComments)
-        // Set initial comment likes state
         const initialLikes = {}
-        mappedComments.forEach(comment => {
+        mappedComments.forEach((comment) => {
           initialLikes[comment.id] = comment.isLiked
         })
         setCommentLikes(initialLikes)
-      })
-      .catch(console.error)
+      } catch (error) {
+        console.error('Comments fetch error:', error)
+        // Don't set the main error state, just log it
+        setComments([]) // Set empty comments instead of breaking
+      }
+    }
+
+    fetchVideoData()
+    fetchComments() // Call separately
+    fetchPlaylists()
+
   }, [slug])
 
   const handlePlayPause = () => setPlaying(!playing)
   const handleVolumeChange = (value) => {
     setVolume(value[0])
-    if (playerRef.current) {
-      playerRef.current.getInternalPlayer().volume = value[0]
-    }
+    setMuted(value[0] === 0)
   }
-  const handleToggleMute = () => {
-    setMuted(!muted)
-    if (playerRef.current) {
-      playerRef.current.getInternalPlayer().muted = !muted
-    }
-  }
+  const handleToggleMute = () => setMuted(!muted)
   const handleProgress = (state) => {
     if (!seeking) {
       setPlayed(state.played)
     }
   }
-  const handleSeekMouseDown = () => setSeeking(true)
   const handleSeekChange = (value) => {
     setPlayed(value[0])
-    if (playerRef.current) {
-      playerRef.current.seekTo(value[0])
-    }
-  }
-  const handleSeekMouseUp = () => {
-    setSeeking(false)
+    playerRef.current?.seekTo(value[0])
   }
   const handleToggleFullscreen = () => {
     if (!isFullscreen) {
-      playerRef.current.getInternalPlayer().requestFullscreen()
+      playerRef.current?.getInternalPlayer()?.requestFullscreen()
     } else {
       document.exitFullscreen()
     }
@@ -132,7 +156,6 @@ export default function Page({ params }) {
   const handleSubscribe = async () => {
     try {
       await axios.post(`/api/subscriptions/channel/${videoData?.owner?._id}`)
-      // Refetch video data to get updated subscription status
       const response = await axios.get(`/api/videos/${slug}`)
       setVideoData(response.data?.data)
     } catch (error) {
@@ -140,63 +163,78 @@ export default function Page({ params }) {
     }
   }
 
-  // Update the video like handler
   const handleLike = async () => {
     try {
       await axios.post(`/api/likes/toggle/v/${slug}`)
-      // Update local state immediately for better UX
       setIsLiked(!isLiked)
-      setLikes(prev => isLiked ? prev - 1 : prev + 1)
-      
-      // Then fetch latest data
+      setLikes((prev) => (isLiked ? prev - 1 : prev + 1))
+      if (isDisliked) {
+        setIsDisliked(false)
+        setDislikes((prev) => prev - 1)
+      }
       const response = await axios.get(`/api/videos/${slug}`)
       const data = response.data?.data
-      // Update with actual server data
       setIsLiked(data?.isLiked || false)
       setLikes(data?.likesCount || 0)
+      setDislikes(data?.dislikesCount || 0)
     } catch (error) {
       console.error(error)
     }
   }
 
-  const handleDislike = () => {
-    if (isDisliked) {
-      setDislikes(dislikes - 1)
-    } else {
-      setDislikes(dislikes + 1)
+  const handleDislike = async () => {
+    try {
+      await axios.post(`/api/dislikes/toggle/v/${slug}`)
+      setIsDisliked(!isDisliked)
+      setDislikes((prev) => (isDisliked ? prev - 1 : prev + 1))
       if (isLiked) {
-        setLikes(likes - 1)
         setIsLiked(false)
+        setLikes((prev) => prev - 1)
       }
+      const response = await axios.get(`/api/videos/${slug}`)
+      const data = response.data?.data
+      setIsDisliked(data?.isDisliked || false)
+      setLikes(data?.likesCount || 0)
+      setDislikes(data?.dislikesCount || 0)
+    } catch (error) {
+      console.error(error)
     }
-    setIsDisliked(!isDisliked)
   }
 
-  // Update the comment like handler
   const handleCommentLike = async (commentId) => {
     try {
       await axios.post(`/api/likes/toggle/c/${commentId}`)
-      
-      // Update local state immediately
-      setComments(prevComments => 
-        prevComments.map(comment => {
+      setComments((prevComments) =>
+        prevComments.map((comment) => {
           if (comment.id === commentId) {
             const isCurrentlyLiked = commentLikes[commentId]
             return {
               ...comment,
-              likes: isCurrentlyLiked ? comment.likes - 1 : comment.likes + 1
+              likes: isCurrentlyLiked ? comment.likes - 1 : comment.likes + 1,
+              isLiked: !isCurrentlyLiked,
             }
           }
           return comment
-        })
+        }),
       )
-      
-      setCommentLikes(prev => ({
+      setCommentLikes((prev) => ({
         ...prev,
-        [commentId]: !prev[commentId]
+        [commentId]: !prev[commentId],
       }))
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
-      // Fetch latest comments
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault()
+    const trimmedComment = newComment.trim()
+    if (!trimmedComment) return
+
+    try {
+      await axios.post(`/api/comments/${slug}`, {
+        content: trimmedComment,
+      })
       const response = await axios.get(`/api/comments/${slug}`)
       const fetchedComments = response.data?.data?.comments || []
       const mappedComments = fetchedComments.map((item) => ({
@@ -210,36 +248,108 @@ export default function Page({ params }) {
         replies: [],
       }))
       setComments(mappedComments)
+      setNewComment("")
     } catch (error) {
       console.error(error)
     }
   }
 
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault()
-    if (!newComment.trim()) return
-
+  const fetchPlaylists = async () => {
     try {
-      await axios.post(`/api/comments/${slug}`, {
-        content: newComment
-      })
-      
-      // Refetch comments
-      const response = await axios.get(`/api/comments/${slug}`)
-      const fetchedComments = response.data?.data?.comments || []
-      const mappedComments = fetchedComments.map((item) => ({
-        id: item._id,
-        user: item.owner?.fullName || item.owner?.username || "Unknown User",
-        avatar: item.owner?.avatar || "/placeholder.svg?height=40&width=40",
-        content: item.content,
-        likes: 0,
-        timestamp: new Date(item.createdAt).toLocaleString(),
-        replies: [],
-      }))
-      setComments(mappedComments)
-      setNewComment("")
+      const response = await axios.get('/api/playlist/user')
+      setPlaylists(response.data?.data || [])
     } catch (error) {
-      console.error(error)
+      console.error('Failed to fetch playlists:', error)
+    }
+  }
+
+  const handleCreatePlaylist = async (e) => {
+    e.preventDefault()
+    const trimmedName = newPlaylist.name.trim()
+    const trimmedDescription = newPlaylist.description.trim()
+    
+    if (!trimmedName) return
+    
+    try {
+      await axios.post('/api/playlist', {
+        name: trimmedName,
+        description: trimmedDescription
+      })
+      setNewPlaylist({ name: '', description: '' })
+      setShowCreatePlaylist(false)
+      fetchPlaylists()
+    } catch (error) {
+      console.error('Failed to create playlist:', error)
+    }
+  }
+
+  const handleAddToPlaylist = async (playlistId) => {
+    try {
+      await axios.patch(`/api/playlist/add/${slug}/${playlistId}`)
+      setIsSaved(true)
+    } catch (error) {
+      console.error('Failed to add to playlist:', error)
+    }
+  }
+
+  const handleShare = async () => {
+    const videoUrl = window.location.href
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: videoData?.title,
+          text: videoData?.description?.slice(0, 100),
+          url: videoUrl
+        })
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Share failed:', error)
+        }
+      }
+    } else {
+      // Fallback to copy to clipboard
+      try {
+        await navigator.clipboard.writeText(videoUrl)
+        toast.success("Link copied to clipboard!")
+      } catch (error) {
+        console.error('Copy failed:', error)
+        toast.error("Failed to copy link")
+      }
+    }
+  }
+
+  const handleReport = () => {
+    toast.info("Thanks for reporting. We'll review this content.")
+  }
+
+  const handleAddToWatchLater = async () => {
+    try {
+      // First try to get user's playlists
+      const playlistsResponse = await axios.get('/api/playlist/user')
+      const userPlaylists = playlistsResponse.data?.data || []
+      
+      // Look for existing Watch Later playlist
+      let watchLaterPlaylist = userPlaylists.find(p => p.name === "Watch Later")
+      
+      // If Watch Later playlist doesn't exist, create it
+      if (!watchLaterPlaylist) {
+        const createResponse = await axios.post('/api/playlist', {
+          name: "Watch Later",
+          description: "Videos saved for later viewing"
+        })
+        watchLaterPlaylist = createResponse.data?.data
+      }
+      
+      // Add video to Watch Later playlist
+      if (watchLaterPlaylist) {
+        await axios.patch(`/api/playlist/add/${slug}/${watchLaterPlaylist._id}`)
+        toast.success("Added to Watch Later")
+        fetchPlaylists() // Refresh playlists
+      }
+    } catch (error) {
+      console.error('Failed to add to Watch Later:', error)
+      toast.error("Failed to add to Watch Later")
     }
   }
 
@@ -259,172 +369,157 @@ export default function Page({ params }) {
     return count
   }
 
-  const handleError = (error) => {
-    console.error("Video playback error:", error);
-    
-    // Show user-friendly error message
-    if (videoUrl?.endsWith('.mkv')) {
-      console.warn("MKV playback might not be supported in this browser. Consider converting to MP4 or WebM format.");
-    }
-    
-    // You can add UI feedback here
-    // setError("This video format might not be supported in your browser");
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
 
-  // Add this helper function in your component
-  const getVideoType = (url) => {
-    const extension = url.split('.').pop().toLowerCase();
-    switch (extension) {
-      case 'mkv':
-        return 'video/x-matroska';
-      case 'mp4':
-        return 'video/mp4';
-      case 'webm':
-        return 'video/webm';
-      default:
-        return 'video/mp4';
-    }
+  if (error) {
+    return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
   }
 
   return (
     <div className="min-h-screen text-secondary">
-      <div className="container mx-auto py-6 px-4">
-        <div className="relative group">
-          {/* Video Player */}
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-            <ReactPlayer
-              ref={playerRef}
-              url={videoUrl}
-              playing={playing}
-              volume={volume}
-              muted={muted}
-              width="100%"
-              height="100%"
-              onProgress={handleProgress}
-              onDuration={setDuration}
-              onError={handleError}
-              config={{
-                file: {
-                  attributes: {
-                    controlsList: "nodownload",
-                    disablePictureInPicture: true,
-                    type: getVideoType(videoUrl)
+      <div className="md:container md:mx-auto md:py-6 md:px-4">
+        <div className="flex flex-col">
+          {/* Video Player - Full width on mobile */}
+          <div className="relative group w-full">
+             <div className="relative aspect-video bg-black md:rounded-xl overflow-hidden">
+              <ReactPlayer
+                ref={playerRef}
+                url={videoUrl}
+                playing={playing}
+                volume={volume}
+                muted={muted}
+                width="100%"
+                height="100%"
+                onProgress={handleProgress}
+                onDuration={setDuration}
+                config={{
+                  file: {
+                    attributes: {
+                      controlsList: "nodownload",
+                      disablePictureInPicture: true,
+                    },
                   },
-                  forceVideo: true,
-                  forceHLS: false,
-                  forceDASH: false,
-                  // Add these configurations for better MKV support
-                  forceAudio: true,
-                  forceSafariHLS: true,
-                  hlsOptions: {
-                    enableWorker: true,
-                    debug: false,
-                  },
-                }
-              }}
-            />
-
-            {/* Custom Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Progress Bar */}
-              <Slider
-                value={[played]}
-                max={1}
-                step={0.001}
-                onValueChange={handleSeekChange}
-                onValueCommit={handleSeekMouseUp}
-                className="mb-4 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
+                }}
               />
+              {/* Custom Controls */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Progress Bar */}
+                <Slider
+                  value={[played]}
+                  max={1}
+                  step={0.001}
+                  onValueChange={handleSeekChange}
+                  className="mb-4 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
+                />
 
-              <div className="flex items-center gap-4">
-                {/* Play/Pause */}
-                <Button variant="ghost" size="icon" onClick={handlePlayPause} className="hover:bg-white/10">
-                  {playing ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                </Button>
-
-                {/* Skip Buttons */}
-                <Button variant="ghost" size="icon" className="hover:bg-white/10">
-                  <SkipBack className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="hover:bg-white/10">
-                  <SkipForward className="w-5 h-5" />
-                </Button>
-
-                {/* Volume Control */}
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={handleToggleMute} className="hover:bg-white/10">
-                    {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                <div className="flex items-center gap-4">
+                  {/* Play/Pause */}
+                  <Button variant="ghost" size="icon" onClick={handlePlayPause} className="hover:bg-white/10">
+                    {playing ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                   </Button>
-                  <Slider
-                    value={[muted ? 0 : volume]}
-                    max={1}
-                    step={0.1}
-                    onValueChange={handleVolumeChange}
-                    className="w-24 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
-                  />
-                </div>
 
-                {/* Time Display */}
-                <span className="text-sm">
-                  {formatTime(played * duration)} / {formatTime(duration)}
-                </span>
-
-                {/* Settings & Fullscreen */}
-                <div className="ml-auto flex items-center gap-2">
+                  {/* Skip Buttons */}
                   <Button variant="ghost" size="icon" className="hover:bg-white/10">
-                    <Settings className="w-5 h-5" />
+                    <SkipBack className="w-5 h-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={handleToggleFullscreen} className="hover:bg-white/10">
-                    <Maximize2 className="w-5 h-5" />
+                  <Button variant="ghost" size="icon" className="hover:bg-white/10">
+                    <SkipForward className="w-5 h-5" />
                   </Button>
+
+                  {/* Volume Control */}
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={handleToggleMute} className="hover:bg-white/10">
+                      {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </Button>
+                    <Slider
+                      value={[muted ? 0 : volume]}
+                      max={1}
+                      step={0.1}
+                      onValueChange={handleVolumeChange}
+                      className="w-24 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
+                    />
+                  </div>
+
+                  {/* Time Display */}
+                  <span className="text-sm">
+                    {formatTime(played * duration)} / {formatTime(duration)}
+                  </span>
+
+                  {/* Settings & Fullscreen */}
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="hover:bg-white/10">
+                      <Settings className="w-5 h-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen} className="hover:bg-white/10">
+                      <Maximize2 className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Video Info */}
-          <div className="mt-4">
-            <h1 className="text-2xl font-bold">{videoData?.title}</h1>
+          {/* Video Info - Stack on mobile */}
+          <div className="flex flex-col px-4 md:px-0">
+            {/* Title */}
+            <h1 className="text-xl md:text-2xl font-bold mt-3">{videoData?.title}</h1>
 
-            <div className="flex items-center justify-between mt-4">
+            {/* Views and date - Mobile layout */}
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+              <span>{formatCount(videoData?.views)} views</span>
+              <span>•</span>
+              <span>
+                {new Date(videoData?.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+
+            {/* Channel info and actions - Stack on mobile */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="w-10 h-10 rounded-full overflow-hidden">
                     <Image
                       src={videoData?.owner?.avatar || "/placeholder.svg?height=40&width=40"}
                       alt={videoData?.owner?.username || "Channel avatar"}
-                      height={40}
                       width={40}
+                      height={40}
                       className="h-10 object-cover"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold">{videoData?.owner?.fullName}</h3>
-                    <p className="text-sm text-gray-400">{videoData?.owner?.subscribersCount} subscribers</p>
+                    <p className="text-sm text-gray-400">{formatCount(videoData?.owner?.subscribersCount)} subscribers</p>
                   </div>
+                  <Button
+                    onClick={handleSubscribe}
+                    className={`${
+                      videoData?.owner?.isSubscribed 
+                        ? "bg-gray-600 hover:bg-gray-700" 
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } whitespace-nowrap`}
+                  >
+                    {videoData?.owner?.isSubscribed ? "Subscribed" : "Subscribe"}
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleSubscribe}
-                  className={`${
-                    videoData?.owner?.isSubscribed 
-                      ? 'bg-gray-600 hover:bg-gray-700' 
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  {videoData?.owner?.isSubscribed ? 'Subscribed' : 'Subscribe'}
-                </Button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="flex items-center bg-gray-800 rounded-full">
+              {/* Action buttons - Horizontal scroll on mobile */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                <div className="flex items-center bg-gray-800 rounded-full shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`flex items-center gap-2 rounded-l-full px-4 ${videoData?.isLiked ? "text-blue-500" : ""}`}
+                    className={`flex items-center gap-2 rounded-l-full px-4 ${isLiked ? "text-blue-500" : ""}`}
                     onClick={handleLike}
                   >
                     <ThumbsUp className="w-5 h-5" />
-                    <span>{formatCount(videoData?.likesCount || 0)}</span>
+                    <span>{formatCount(likes)}</span>
                   </Button>
                   <div className="w-px h-6 bg-gray-700" />
                   <Button
@@ -434,50 +529,94 @@ export default function Page({ params }) {
                     onClick={handleDislike}
                   >
                     <ThumbsDown className="w-5 h-5" />
+                    <span>{formatCount(dislikes)}</span>
                   </Button>
                 </div>
 
-                <Button variant="ghost" size="sm" className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700">
-                  <Share2 className="w-5 h-5" />
-                  Share
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`flex items-center gap-2 bg-gray-800 hover:bg-gray-700 ${isSaved ? "text-blue-500" : ""}`}
-                  onClick={() => setIsSaved(!isSaved)}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 shrink-0"
+                  onClick={handleShare}
                 >
-                  <BookmarkPlus className="w-5 h-5" />
-                  Save
+                  <Share2 className="w-5 h-5" />
+                  <span className="hidden md:inline">Share</span>
                 </Button>
 
-                <Button variant="ghost" size="icon" className="bg-gray-800 hover:bg-gray-700">
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex items-center gap-2 bg-gray-800 hover:bg-gray-700 shrink-0 ${
+                        isSaved ? "text-blue-500" : ""
+                      }`}
+                    >
+                      <BookmarkPlus className="w-5 h-5" />
+                      <span className="hidden md:inline">Save</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+                    {playlists.map((playlist) => (
+                      <DropdownMenuItem
+                        key={playlist._id}
+                        className="text-gray-200 hover:bg-gray-700 cursor-pointer"
+                        onClick={() => handleAddToPlaylist(playlist._id)}
+                      >
+                        {playlist.name}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuItem
+                      className="text-gray-200 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => setShowCreatePlaylist(true)}
+                    >
+                      Create new playlist
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="bg-gray-800 hover:bg-gray-700 shrink-0">
+                      <MoreVertical className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+                    <DropdownMenuItem 
+                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      onClick={handleAddToWatchLater}
+                    >
+                      <PlaySquare className="w-4 h-4" />
+                      <span>Save to Watch Later</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      onClick={() => window.open(videoUrl, '_blank')}
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      onClick={handleReport}
+                    >
+                      <Flag className="w-4 h-4" />
+                      <span>Report</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
-            {/* Description */}
+            {/* Description - Collapsible on mobile */}
             <div className="mt-4 bg-gray-800 rounded-xl p-4">
-              <div className="flex items-start gap-2">
-                <div className="font-medium">
-                  {formatCount(videoData?.views || 0)} views • {
-                    new Date(videoData?.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })
-                  }
-                </div>
-              </div>
-              <div className={`mt-2 ${showFullDescription ? "" : "line-clamp-2"}`}>
+              <div className={`${showFullDescription ? "" : "line-clamp-2"}`}>
                 {videoData?.description}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2"
+                className="mt-2 w-full md:w-auto"
                 onClick={() => setShowFullDescription(!showFullDescription)}
               >
                 {showFullDescription ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -485,29 +624,29 @@ export default function Page({ params }) {
               </Button>
             </div>
 
-            {/* Comments Section */}
+            {/* Comments Section - Mobile optimized */}
             <div className="mt-6">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-4 px-1">
                 <MessageSquare className="w-5 h-5" />
-                <h2 className="text-xl font-bold">Comments</h2>
+                <h2 className="text-lg md:text-xl font-bold">Comments</h2>
                 <span className="text-gray-400">({comments.length})</span>
               </div>
 
-              {/* Add Comment */}
+              {/* Add Comment - Full width on mobile */}
               <form onSubmit={handleCommentSubmit} className="flex gap-4 mb-6">
                 <Image
-                  src={backendData?.userData?.avatar}
+                  src={backendData?.userData?.avatar || "/placeholder.svg?height=40&width=40"}
                   alt="Your avatar"
-                  height={40}
                   width={40}
-                  className="h-10 rounded-full"
+                  height={40}
+                  className="h-10 w-10 rounded-full shrink-0"
                 />
                 <div className="flex-1">
                   <Textarea
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={(e) => setNewComment(e.target.value.trimStart())}
                     placeholder="Add a comment..."
-                    className="min-h-[60px] bg-gray-800 border-none focus:ring-1 focus:ring-blue-500"
+                    className="min-h-[60px] bg-gray-800 border-none focus:ring-1 focus:ring-blue-500 w-full"
                   />
                   <div className="flex justify-end gap-2 mt-2">
                     <Button type="button" variant="ghost" onClick={() => setNewComment("")}>
@@ -520,29 +659,29 @@ export default function Page({ params }) {
                 </div>
               </form>
 
-              {/* Comments List */}
-              <div className="space-y-6">
+              {/* Comments List - Mobile optimized spacing */}
+              <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="space-y-4">
-                    <div className="flex gap-4">
+                  <div key={comment.id} className="p-2">
+                    <div className="flex gap-3">
                       <Image
                         src={comment.avatar || "/placeholder.svg"}
                         alt={`${comment.user}'s avatar`}
-                        height={40}
                         width={40}
-                        className="h-10 rounded-full"
+                        height={40}
+                        className="h-8 w-8 md:h-10 md:w-10 rounded-full shrink-0"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{comment.user}</span>
-                          <span className="text-sm text-gray-400">{comment.timestamp}</span>
+                          <span className="font-medium text-sm md:text-base">{comment.user}</span>
+                          <span className="text-xs md:text-sm text-gray-400">{comment.timestamp}</span>
                         </div>
-                        <p className="mt-1">{comment.content}</p>
+                        <p className="mt-1 text-sm md:text-base break-words">{comment.content}</p>
                         <div className="flex items-center gap-4 mt-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className={`flex items-center gap-1 ${commentLikes[comment.id] ? "text-blue-500" : ""}`}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`flex items-center gap-1 ${comment.isLiked ? "text-blue-500" : ""}`}
                             onClick={() => handleCommentLike(comment.id)}
                           >
                             <ThumbsUp className="w-4 h-4" />
@@ -557,42 +696,6 @@ export default function Page({ params }) {
                         </div>
                       </div>
                     </div>
-
-                    {/* Replies */}
-                    {comment.replies.length > 0 && (
-                      <div className="ml-14 space-y-4">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="flex gap-4">
-                            <Image
-                              src={reply.avatar || "/placeholder.svg"}
-                              alt={`${reply.user}'s avatar`}
-                              height={32}
-                              width={32}
-                              className="h-8 rounded-full"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{reply.user}</span>
-                                <span className="text-sm text-gray-400">{reply.timestamp}</span>
-                              </div>
-                              <p className="mt-1">{reply.content}</p>
-                              <div className="flex items-center gap-4 mt-2">
-                                <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                                  <ThumbsUp className="w-4 h-4" />
-                                  {reply.likes}
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <ThumbsDown className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  Reply
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -600,6 +703,53 @@ export default function Page({ params }) {
           </div>
         </div>
       </div>
+      <Dialog open={showCreatePlaylist} onOpenChange={setShowCreatePlaylist}>
+        <DialogContent className="bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-200">Create new playlist</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreatePlaylist} className="space-y-4">
+            <div>
+              <Input
+                placeholder="Playlist name"
+                value={newPlaylist.name}
+                onChange={(e) => setNewPlaylist(prev => ({ 
+                  ...prev, 
+                  name: e.target.value.trimStart() 
+                }))}
+                className="bg-gray-700 border-gray-600 text-gray-200"
+              />
+            </div>
+            <div>
+              <Textarea
+                placeholder="Description"
+                value={newPlaylist.description}
+                onChange={(e) => setNewPlaylist(prev => ({ 
+                  ...prev, 
+                  description: e.target.value.trimStart() 
+                }))}
+                className="bg-gray-700 border-gray-600 text-gray-200"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowCreatePlaylist(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={!newPlaylist.name.trim()}
+              >
+                Create
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
