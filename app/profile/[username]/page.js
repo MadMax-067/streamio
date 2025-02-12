@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 export default function ProfilePage() {
-  const { isLoggedIn, onLoginClick } = useContext(BackendContext)
+  const { isLoggedIn, onLoginClick, onSignupClick } = useContext(BackendContext)
   const [profileData, setProfileData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -32,11 +32,22 @@ export default function ProfilePage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
         <h1 className="text-2xl font-bold mb-4">Please login to view profiles</h1>
-        <Button onClick={onLoginClick} className="bg-blue-600 hover:bg-blue-700">
-          Login
-        </Button>
+        <div className="flex gap-4">
+          <Button 
+            onClick={onLoginClick} 
+            className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
+          >
+            Login
+          </Button>
+          <Button 
+            onClick={onSignupClick} 
+            className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
+          >
+            Sign up
+          </Button>
+        </div>
       </div>
     )
   }
