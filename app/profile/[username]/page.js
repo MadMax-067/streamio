@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
 import { Upload, X } from 'lucide-react'
+import BottomBar from '@/components/BottomBar'
 
 export default function ProfilePage() {
   const backendData = useContext(BackendContext)
@@ -363,6 +364,10 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="md:hidden">
+        <BottomBar />
       </div>
     </>
   )
