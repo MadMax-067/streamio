@@ -1,21 +1,27 @@
 "use client"
-import React, { useContext, useRef, useState, useEffect } from 'react'
+import React, { useContext, useRef, useState, useEffect, useCallback } from 'react'
 import { BackendContext } from './Providers'
 import SearchIcon from './SearchIcon'
 import { useRouter } from 'next/navigation'
+import { prefetchAndNavigate } from '@/utils/navigation'
 
 const Search = () => {
     const router = useRouter()
     const { searchValue, handleSearchChange, isMobile, isSearching, setIsSearching } = useContext(BackendContext)
     const mobileSearchRef = useRef()
+    const [isNavigating, setIsNavigating] = useState(false)
 
-    const handleSubmit = (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault()
-        if (searchValue.trim()) {
-            router.push(`/search?q=${encodeURIComponent(searchValue.trim())}`)
-            setIsSearching(false)
+        if (searchValue.trim() && !isNavigating) {
+            setIsNavigating(true)
+            const query = encodeURIComponent(searchValue.trim())
+            await prefetchAndNavigate(router, `/search?q=${query}`, () => {
+                setIsSearching(false)
+                setIsNavigating(false)
+            })
         }
-    }
+    }, [searchValue, setIsSearching, isNavigating])
 
     const handleClickOutside = (event) => {
         if (mobileSearchRef.current && mobileSearchRef.current.contains(event.target)) return;

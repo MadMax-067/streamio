@@ -6,12 +6,16 @@ import Search from './Search';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BackendContext } from './Providers';
+import { useRouter } from 'next/navigation'
+import { prefetchAndNavigate } from '@/utils/navigation'
+
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 
 const Navbar = ({ setIsRegistering, setIsLogging }) => {
     const backendData = useContext(BackendContext);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const router = useRouter()
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -28,7 +32,14 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
         <nav className={`${mercenary.className} navbar flex items-center w-full h-[9.25vh]`}>
             <div className='flex w-full items-center mx-4 md:m-0 justify-center md:justify-between md:px-7 2xl:px-10 ' >
                 {!backendData.isSearching && (<div>
-                    <Link href="/"><Streamio /></Link>
+                    <button 
+                        onClick={async () => {
+                            await prefetchAndNavigate(router, '/')
+                        }}
+                        className="hover:opacity-80 transition-opacity"
+                    >
+                        <Streamio />
+                    </button>
                 </div>)}
                 <Search />
                 {!backendData.isMobile && (!backendData.isLoggedIn ? (<div className='flex gap-3' >

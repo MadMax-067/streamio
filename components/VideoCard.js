@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -5,6 +6,7 @@ import localFont from 'next/font/local'
 import Card from './Card'
 import styled from 'styled-components'
 import { useRouter } from 'next/navigation'
+import { prefetchAndNavigate } from '@/utils/navigation'
 const nunito = localFont({ src: '../fonts/Nunito.ttf' });
 
 const StyledVideoCard = styled.div`
@@ -87,11 +89,19 @@ const StyledVideoCard = styled.div`
 `;
 
 const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, duration }) => {
+  const router = useRouter()
 
+  const handleVideoClick = async (e) => {
+    e.preventDefault()
+    await prefetchAndNavigate(router, `/video/${videoId}`)
+  }
 
   return (
     <StyledVideoCard>
-      <Link href={`/video/${videoId}`}>
+      <div 
+        onClick={handleVideoClick}
+        className="cursor-pointer transition-transform hover:scale-[1.02]"
+      >
         <div className={`${nunito.className} video-card gap-2 flex flex-col justify-between bg-secondary/0 rounded`}>
           <div className="relative shrink-0 w-full">
             <Card duration={duration} thumbnail={thumbnail} />
@@ -113,7 +123,7 @@ const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, dura
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </StyledVideoCard>
   )
 }
