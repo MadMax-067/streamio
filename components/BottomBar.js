@@ -1,20 +1,20 @@
 import React, { useContext } from 'react'
-import localFont from 'next/font/local';
-import BottomButton from './BottomButton';
-const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
-import { faHouse, faBookBookmark, faClockRotateLeft, faFolderOpen, faVideo, faHeart, faGear } from '@fortawesome/free-solid-svg-icons';
-import { BackendContext } from './Providers';
-import Image from 'next/image';
+import localFont from 'next/font/local'
+import BottomButton from './BottomButton'
+const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' })
+import { faHouse, faBookBookmark, faClockRotateLeft, faFolderOpen, faVideo, faHeart, faGear } from '@fortawesome/free-solid-svg-icons'
+import { BackendContext } from './Providers'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 const BottomBar = () => {
-  const backendData = useContext(BackendContext);
+  const backendData = useContext(BackendContext)
   const router = useRouter()
 
   return (
     <aside className={`${mercenary.className} fixed bottom-0 bg-accent w-full bottomBar flex py-4 justify-center items-center`}>
       <div className='flex gap-3 w-full justify-evenly items-center'>
-        <BottomButton iconName={faHouse} />
+        <BottomButton iconName={faHouse} onClick={() => router.push('/')} />
         <BottomButton iconName={faBookBookmark} />
         <BottomButton iconName={faHeart} />
         <div 
