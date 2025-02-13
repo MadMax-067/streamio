@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from "framer-motion"
 import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
+import { Upload, X } from 'lucide-react'
 
 export default function ProfilePage() {
   const backendData = useContext(BackendContext)
@@ -19,6 +20,16 @@ export default function ProfilePage() {
 
   const loginRef = useRef(null)
   const signUpRef = useRef(null)
+
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadData, setUploadData] = useState({
+    title: '',
+    description: '',
+    video: null,
+    thumbnail: null
+  })
 
   const handleClickOutside = (event) => {
     if (loginRef.current && !loginRef.current.contains(event.target)) {
@@ -49,12 +60,52 @@ export default function ProfilePage() {
     fetchProfile()
   }, [params.username])
 
+  const handleUpload = async (e) => {
+    e.preventDefault()
+    setIsUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('videoFile', uploadData.video)
+      formData.append('thumbnail', uploadData.thumbnail)
+      formData.append('title', uploadData.title)
+      formData.append('description', uploadData.description)
+
+      const response = await axios.post('/api/videos', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data'
+        },
+        withCredentials: true, // Important for auth
+        onUploadProgress: (progressEvent) => {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100
+          setUploadProgress(Math.round(progress))
+        }
+      })
+
+      if (response.data.success) {
+        // Reset form and close modal
+        setUploadData({ title: '', description: '', video: null, thumbnail: null })
+        setShowUploadModal(false)
+        // Refresh profile data
+        window.location.reload()
+      } else {
+        throw new Error(response.data.message || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert(error.response?.data?.message || 'Upload failed. Please try again.')
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
   if (!backendData.isLoggedIn) {
     return (
       <>
         <AnimatePresence>
           {backendData.isLogging && (
-            <motion.div 
+            <motion.div
               ref={loginRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -65,7 +116,7 @@ export default function ProfilePage() {
             </motion.div>
           )}
           {backendData.isRegistering && (
-            <motion.div 
+            <motion.div
               ref={signUpRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -80,14 +131,14 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
           <h1 className="text-2xl font-bold mb-4">Please login to view profiles</h1>
           <div className="flex gap-4">
-            <Button 
-              onClick={backendData.onLoginClick} 
+            <Button
+              onClick={backendData.onLoginClick}
               className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
             >
               Login
             </Button>
-            <Button 
-              onClick={backendData.onSignupClick} 
+            <Button
+              onClick={backendData.onSignupClick}
               className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
             >
               Sign up
@@ -128,7 +179,7 @@ export default function ProfilePage() {
     <>
       <AnimatePresence>
         {backendData.isLogging && (
-          <motion.div 
+          <motion.div
             ref={loginRef}
             key="loginModal"
             exit={{ opacity: 0 }}
@@ -138,7 +189,7 @@ export default function ProfilePage() {
           </motion.div>
         )}
         {backendData.isRegistering && (
-          <motion.div 
+          <motion.div
             ref={signUpRef}
             key="signUpModal"
             exit={{ opacity: 0 }}
@@ -184,17 +235,113 @@ export default function ProfilePage() {
             </div>
             <div className="md:ml-auto">
               <Button
-                className={`${
-                  profileData?.isSubscribed
+                className={`${profileData?.isSubscribed
                     ? "bg-gray-600 hover:bg-gray-700"
                     : "bg-blue-600 hover:bg-blue-700"
-                } px-8`}
+                  } px-8`}
               >
                 {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
               </Button>
             </div>
           </div>
         </div>
+
+        {params.username === backendData?.userData?.username && (
+          <div className="px-4 md:px-8 mt-8">
+            <Button
+              onClick={() => setShowUploadModal(true)}
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Video
+            </Button>
+
+            {showUploadModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              >
+                <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold">Upload Video</h3>
+                    <button
+                      onClick={() => setShowUploadModal(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleUpload} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Video File (MP4)
+                      </label>
+                      <input
+                        type="file"
+                        accept="video/mp4"
+                        onChange={(e) => setUploadData({ ...uploadData, video: e.target.files[0] })}
+                        className="w-full bg-gray-700 rounded-lg p-2"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Thumbnail Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setUploadData({ ...uploadData, thumbnail: e.target.files[0] })}
+                        className="w-full bg-gray-700 rounded-lg p-2"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={uploadData.title}
+                        onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
+                        className="w-full bg-gray-700 rounded-lg p-2"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Description</label>
+                      <textarea
+                        value={uploadData.description}
+                        onChange={(e) => setUploadData({ ...uploadData, description: e.target.value })}
+                        className="w-full bg-gray-700 rounded-lg p-2 min-h-[100px]"
+                      />
+                    </div>
+
+                    {isUploading && (
+                      <div className="w-full bg-gray-700 rounded-full h-2.5">
+                        <div
+                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={isUploading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
+                    >
+                      {isUploading ? `Uploading... ${uploadProgress}%` : 'Upload'}
+                    </Button>
+                  </form>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Videos Section */}
         <div className="px-4 md:px-8 mt-8">
