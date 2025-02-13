@@ -101,6 +101,16 @@ export default function ProfilePage() {
     }
   }
 
+  const handleSubscribe = async () => {
+    try {
+      await axios.post(`/api/subscriptions/channel/${profileData?._id}`)
+      const response = await axios.get(`/api/users/channel/${params.username}`)
+      setProfileData(response.data.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   if (!backendData.isLoggedIn) {
     return (
       <>
@@ -236,6 +246,7 @@ export default function ProfilePage() {
             </div>
             <div className="md:ml-auto">
               <Button
+                onClick={handleSubscribe}
                 className={`${profileData?.isSubscribed
                     ? "bg-gray-600 hover:bg-gray-700"
                     : "bg-blue-600 hover:bg-blue-700"
