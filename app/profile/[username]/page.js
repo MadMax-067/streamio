@@ -1,9 +1,7 @@
 "use client"
-import { useContext, useEffect, useState, useRef } from 'react'
+import { useContext, useEffect, useState, useRef, Suspense, lazy } from 'react'
 import { BackendContext } from '@/components/Providers'
 import axios from 'axios'
-import Image from 'next/image'
-import VideoCard from '@/components/VideoCard'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from "framer-motion"
@@ -11,6 +9,9 @@ import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
 import { Upload, X } from 'lucide-react'
 import BottomBar from '@/components/BottomBar'
+import Image from 'next/image'
+
+const VideoCard = lazy(() => import('@/components/VideoCard'))
 
 export default function ProfilePage() {
   const backendData = useContext(BackendContext)
@@ -359,20 +360,22 @@ export default function ProfilePage() {
         <div className="px-4 md:px-8 mt-8">
           <h2 className="text-xl md:text-2xl font-bold mb-4">Videos</h2>
           <div className="flex flex-wrap justify-evenly gap-4">
-            {profileData?.publishedVideos?.map((video) => (
-              <div className="w-fit">
-                <VideoCard
-                  key={video._id}
-                  videoId={video._id}
-                  title={video.title}
-                  thumbnail={video.thumbnail}
-                  channelName={profileData.fullName}
-                  views={formatViews(video.views || 0)}
-                  avatar={profileData.avatar}
-                  duration={video.duration}
-                />
-              </div>
-            ))}
+            <Suspense fallback={<div>Loading...</div>}>
+              {profileData?.publishedVideos?.map((video) => (
+                <div className="w-fit">
+                  <VideoCard
+                    key={video._id}
+                    videoId={video._id}
+                    title={video.title}
+                    thumbnail={video.thumbnail}
+                    channelName={profileData.fullName}
+                    views={formatViews(video.views || 0)}
+                    avatar={profileData.avatar}
+                    duration={video.duration}
+                  />
+                </div>
+              ))}
+            </Suspense>
           </div>
         </div>
       </div>
