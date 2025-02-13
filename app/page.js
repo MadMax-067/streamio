@@ -1,5 +1,8 @@
+"use client"
 import Main from "@/components/Main";
 import axios from "axios";
+
+export const dynamic = 'force-dynamic'
 
 export default async function Home() {
     

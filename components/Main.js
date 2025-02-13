@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react"
 import BottomBar from './BottomBar';
 import { BackendContext } from './Providers';
 
+export const dynamic = 'force-dynamic'
 
 const Main = (props) => {
     const backendData = useContext(BackendContext);
