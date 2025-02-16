@@ -49,10 +49,11 @@ import Loading from "@/components/Loading"
 import { motion, AnimatePresence } from "framer-motion"
 import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
+import Link from 'next/link'
 
 export default function VideoPage({ params }) {
   const playerRef = useRef(null)
-  const [playing, setPlaying] = useState(false)
+  const [playing, setPlaying] = useState(true)  // Changed from false to true
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [played, setPlayed] = useState(0)
@@ -60,13 +61,11 @@ export default function VideoPage({ params }) {
   const [duration, setDuration] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
-  const [isDisliked, setIsDisliked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState("")
   const [likes, setLikes] = useState(0)
-  const [dislikes, setDislikes] = useState(0)
   const slug = params.videoId
   const backendData = useContext(BackendContext)
   const [videoUrl, setVideoUrl] = useState("")
@@ -92,7 +91,14 @@ export default function VideoPage({ params }) {
         setVideoData(videoData)
         setIsLiked(videoData?.isLiked || false)
         setLikes(videoData?.likesCount || 0)
-        setDislikes(videoData?.dislikesCount || 0)
+        
+        // Check if video exists in any playlist
+        const playlistsResponse = await axios.get('/api/playlist/user')
+        const userPlaylists = playlistsResponse.data?.data || []
+        const isVideoSaved = userPlaylists.some(playlist => 
+          playlist.videos.some(video => video._id === slug)
+        )
+        setIsSaved(isVideoSaved)
       } catch (error) {
         console.error('Video fetch error:', error)
         setError("Failed to load video. Please try again later.")
@@ -109,6 +115,7 @@ export default function VideoPage({ params }) {
         const mappedComments = fetchedComments.map((item) => ({
           id: item._id,
           user: item.owner?.fullName || item.owner?.username || "Unknown User",
+          username: item.owner?.username,
           avatar: item.owner?.avatar || "/placeholder.svg?height=40&width=40",
           content: item.content,
           likes: item.likesCount || 0,
@@ -172,36 +179,10 @@ export default function VideoPage({ params }) {
   const handleLike = async () => {
     try {
       await axios.post(`/api/likes/toggle/v/${slug}`)
-      setIsLiked(!isLiked)
-      setLikes((prev) => (isLiked ? prev - 1 : prev + 1))
-      if (isDisliked) {
-        setIsDisliked(false)
-        setDislikes((prev) => prev - 1)
-      }
       const response = await axios.get(`/api/videos/${slug}`)
       const data = response.data?.data
       setIsLiked(data?.isLiked || false)
       setLikes(data?.likesCount || 0)
-      setDislikes(data?.dislikesCount || 0)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  const handleDislike = async () => {
-    try {
-      await axios.post(`/api/dislikes/toggle/v/${slug}`)
-      setIsDisliked(!isDisliked)
-      setDislikes((prev) => (isDisliked ? prev - 1 : prev + 1))
-      if (isLiked) {
-        setIsLiked(false)
-        setLikes((prev) => prev - 1)
-      }
-      const response = await axios.get(`/api/videos/${slug}`)
-      const data = response.data?.data
-      setIsDisliked(data?.isDisliked || false)
-      setLikes(data?.likesCount || 0)
-      setDislikes(data?.dislikesCount || 0)
     } catch (error) {
       console.error(error)
     }
@@ -456,7 +437,7 @@ export default function VideoPage({ params }) {
               <ReactPlayer
                 ref={playerRef}
                 url={videoUrl}
-                playing={playing}
+                playing={playing}  // This will now start as true
                 volume={volume}
                 muted={muted}
                 width="100%"
@@ -468,6 +449,7 @@ export default function VideoPage({ params }) {
                     attributes: {
                       controlsList: "nodownload",
                       disablePictureInPicture: true,
+                      autoPlay: true,  // Added this line
                     },
                   },
                 }}
@@ -550,33 +532,24 @@ export default function VideoPage({ params }) {
 
             {/* Channel info and actions - Stack on mobile */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                    <Image
-                      src={videoData?.owner?.avatar || "/placeholder.svg?height=40&width=40"}
-                      alt={videoData?.owner?.username || "Channel avatar"}
-                      width={40}
-                      height={40}
-                      className="h-10 object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{videoData?.owner?.fullName}</h3>
-                    <p className="text-sm text-gray-400">{formatCount(videoData?.owner?.subscribersCount)} subscribers</p>
-                  </div>
-                  <Button
-                    onClick={handleSubscribe}
-                    className={`${
-                      videoData?.owner?.isSubscribed 
-                        ? "bg-gray-600 hover:bg-gray-700" 
-                        : "bg-blue-600 hover:bg-blue-700"
-                    } whitespace-nowrap`}
-                  >
-                    {videoData?.owner?.isSubscribed ? "Subscribed" : "Subscribe"}
-                  </Button>
+              <Link 
+                href={`/profile/${videoData?.owner?.username}`}
+                className="flex items-center gap-3 hover:bg-gray-800/50 p-2 rounded-lg transition"
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden">
+                  <Image
+                    src={videoData?.owner?.avatar || "/placeholder.svg?height=40&width=40"}
+                    alt={videoData?.owner?.username || "Channel avatar"}
+                    width={40}
+                    height={40}
+                    className="h-10 object-cover"
+                  />
                 </div>
-              </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">{videoData?.owner?.fullName}</h3>
+                  <p className="text-sm text-gray-400">{formatCount(videoData?.owner?.subscribersCount)} subscribers</p>
+                </div>
+              </Link>
 
               {/* Action buttons - Horizontal scroll on mobile */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
@@ -584,21 +557,11 @@ export default function VideoPage({ params }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`flex items-center gap-2 rounded-l-full px-4 ${isLiked ? "text-blue-500" : ""}`}
+                    className={`flex items-center gap-2 rounded-full px-4 ${isLiked ? "text-blue-500" : ""}`}
                     onClick={handleLike}
                   >
                     <ThumbsUp className="w-5 h-5" />
                     <span>{formatCount(likes)}</span>
-                  </Button>
-                  <div className="w-px h-6 bg-gray-700" />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`rounded-r-full px-4 ${isDisliked ? "text-blue-500" : ""}`}
-                    onClick={handleDislike}
-                  >
-                    <ThumbsDown className="w-5 h-5" />
-                    <span>{formatCount(dislikes)}</span>
                   </Button>
                 </div>
 
@@ -733,16 +696,26 @@ export default function VideoPage({ params }) {
                 {comments.map((comment) => (
                   <div key={comment.id} className="p-2">
                     <div className="flex gap-3">
-                      <Image
-                        src={comment.avatar || "/placeholder.svg"}
-                        alt={`${comment.user}'s avatar`}
-                        width={40}
-                        height={40}
-                        className="h-8 w-8 md:h-10 md:w-10 rounded-full shrink-0"
-                      />
+                      <Link 
+                        href={`/profile/${comment.username}`} 
+                        className="shrink-0"
+                      >
+                        <Image
+                          src={comment.avatar || "/placeholder.svg"}
+                          alt={`${comment.user}'s avatar`}
+                          width={40}
+                          height={40}
+                          className="h-8 w-8 md:h-10 md:w-10 rounded-full hover:opacity-80 transition-opacity"
+                        />
+                      </Link>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm md:text-base">{comment.user}</span>
+                          <Link 
+                            href={`/profile/${comment.username}`}
+                            className="font-medium text-sm md:text-base hover:text-blue-400 transition-colors"
+                          >
+                            {comment.user}
+                          </Link>
                           <span className="text-xs md:text-sm text-gray-400">{comment.timestamp}</span>
                         </div>
                         <p className="mt-1 text-sm md:text-base break-words">{comment.content}</p>
@@ -755,9 +728,6 @@ export default function VideoPage({ params }) {
                           >
                             <ThumbsUp className="w-4 h-4" />
                             {comment.likes}
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <ThumbsDown className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
                             Reply
