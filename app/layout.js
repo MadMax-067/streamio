@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import RouteChangeHandler from "@/components/RouteChangeHandler";
+import { Toaster } from 'sonner'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,17 @@ export default function RootLayout({ children }) {
           <RouteChangeHandler />
           {children}
         </Providers>
+        <Toaster 
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #444',
+            },
+            className: 'dark',
+          }}
+        />
       </body>
     </html>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import Image from 'next/image'
 import axios from 'axios'
-import { toast } from 'sonner'
+import { Toaster, toast } from 'sonner' // Update import to include Toaster
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 import {

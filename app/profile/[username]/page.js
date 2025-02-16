@@ -11,6 +11,7 @@ import { Upload, X } from 'lucide-react'
 import BottomBar from '@/components/BottomBar'
 import Image from 'next/image'
 import Loading from '@/components/Loading'
+import AuthCheck from '@/components/AuthCheck'
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
@@ -114,52 +115,7 @@ export default function ProfilePage() {
   }
 
   if (!backendData.isLoggedIn) {
-    return (
-      <>
-        <AnimatePresence>
-          {backendData.isLogging && (
-            <motion.div
-              ref={loginRef}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className='fixedBox'
-            >
-              <Login />
-            </motion.div>
-          )}
-          {backendData.isRegistering && (
-            <motion.div
-              ref={signUpRef}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className='fixedBox'
-            >
-              <SignUp />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-          <h1 className="text-2xl font-bold mb-4">Please login to view profiles</h1>
-          <div className="flex gap-4">
-            <Button
-              onClick={backendData.onLoginClick}
-              className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
-            >
-              Login
-            </Button>
-            <Button
-              onClick={backendData.onSignupClick}
-              className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
-            >
-              Sign up
-            </Button>
-          </div>
-        </div>
-      </>
-    )
+    return <AuthCheck message="Please login to view profiles" />
   }
 
   if (isLoading) {

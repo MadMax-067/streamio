@@ -14,6 +14,7 @@ import Login from '@/components/Login'
 import { Button } from '@/components/ui/button'
 import SearchSkeleton from '@/components/SearchSkeleton'
 import NoResults from '@/components/NoResults'
+import AuthCheck from '@/components/AuthCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -158,7 +159,7 @@ function SearchContent() {
   )
 }
 
-export default function SearchResults() {
+export default function SearchPage() {
   const backendData = useContext(BackendContext)
   const loginRef = useRef(null)
   const signUpRef = useRef(null)
@@ -178,52 +179,7 @@ export default function SearchResults() {
   }, [])
 
   if (!backendData.isLoggedIn) {
-    return (
-      <>
-        <AnimatePresence>
-          {backendData.isLogging && (
-            <motion.div
-              ref={loginRef}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className='fixedBox'
-            >
-              <Login />
-            </motion.div>
-          )}
-          {backendData.isRegistering && (
-            <motion.div
-              ref={signUpRef}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className='fixedBox'
-            >
-              <SignUp />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
-          <h1 className="text-2xl font-bold mb-4">Please login to search videos</h1>
-          <div className="flex gap-4">
-            <Button
-              onClick={backendData.onLoginClick}
-              className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
-            >
-              Login
-            </Button>
-            <Button
-              onClick={backendData.onSignupClick}
-              className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
-            >
-              Sign up
-            </Button>
-          </div>
-        </div>
-      </>
-    )
+    return <AuthCheck message="Please login to search videos" />
   }
 
   return (
