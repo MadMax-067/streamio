@@ -104,16 +104,16 @@ const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, dura
 
   return (
     <StyledVideoCard>
-      <div 
+      <div
         onClick={handleVideoClick}
         className="cursor-pointer transition-transform hover:scale-[1.02]"
       >
         <div className={`${nunito.className} video-card gap-2 flex flex-col justify-between bg-secondary/0 rounded`}>
           <div className="relative shrink-0 w-full">
-            <Card duration={duration} thumbnail={thumbnail} />
+            <Card duration={duration} thumbnail={thumbnail} videoId={videoId} />
           </div>
           <div className="video-info">
-            <Link 
+            <Link
               href={`/profile/${channelUsername}`}
               onClick={handleChannelClick}
               className="avatar-container relative rounded-full overflow-hidden hover:opacity-80 transition-opacity"
@@ -128,7 +128,7 @@ const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, dura
             </Link>
             <div className="text-container">
               <h3 className="video-title text-secondary font-semibold">{title}</h3>
-              <Link 
+              <Link
                 href={`/profile/${channelUsername}`}
                 onClick={handleChannelClick}
                 className="channel-name hover:text-blue-400 transition-colors"
