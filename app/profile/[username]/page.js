@@ -10,6 +10,7 @@ import Login from '@/components/Login'
 import { Upload, X } from 'lucide-react'
 import BottomBar from '@/components/BottomBar'
 import Image from 'next/image'
+import Loading from '@/components/Loading'
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
@@ -74,7 +75,7 @@ export default function ProfilePage() {
       formData.append('description', uploadData.description)
 
       const response = await axios.post('/api/videos', formData, {
-        headers: { 
+        headers: {
           'Content-Type': 'multipart/form-data'
         },
         withCredentials: true, // Important for auth
@@ -164,7 +165,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
+        <Loading />
       </div>
     )
   }
@@ -249,8 +250,8 @@ export default function ProfilePage() {
               <Button
                 onClick={handleSubscribe}
                 className={`${profileData?.isSubscribed
-                    ? "bg-gray-600 hover:bg-gray-700"
-                    : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-gray-600 hover:bg-gray-700"
+                  : "bg-blue-600 hover:bg-blue-700"
                   } px-8`}
               >
                 {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
@@ -360,7 +361,7 @@ export default function ProfilePage() {
         <div className="px-4 md:px-8 mt-8">
           <h2 className="text-xl md:text-2xl font-bold mb-4">Videos</h2>
           <div className="flex flex-wrap justify-evenly gap-4">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<div> <span className='loading loading-spinner loading-lg' ></span> </div>}>
               {profileData?.publishedVideos?.map((video) => (
                 <div className="w-fit">
                   <VideoCard

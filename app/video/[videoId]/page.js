@@ -45,6 +45,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import Loading from "@/components/Loading"
+import { motion, AnimatePresence } from "framer-motion"
+import SignUp from '@/components/SignUp'
+import Login from '@/components/Login'
 
 export default function VideoPage({ params }) {
   const playerRef = useRef(null)
@@ -74,6 +78,8 @@ export default function VideoPage({ params }) {
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false)
   const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' })
   const [showShareDialog, setShowShareDialog] = useState(false)
+  const loginRef = useRef(null)
+  const signUpRef = useRef(null)
 
   useEffect(() => {
     const fetchVideoData = async () => {
@@ -369,8 +375,71 @@ export default function VideoPage({ params }) {
     return count
   }
 
+  const handleClickOutside = (event) => {
+    if (loginRef.current && !loginRef.current.contains(event.target)) {
+      backendData.setIsLogging(false)
+    }
+    if (signUpRef.current && !signUpRef.current.contains(event.target)) {
+      backendData.setIsRegistering(false)
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  if (!backendData.isLoggedIn) {
+    return (
+      <>
+        <AnimatePresence>
+          {backendData.isLogging && (
+            <motion.div
+              ref={loginRef}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixedBox'
+            >
+              <Login />
+            </motion.div>
+          )}
+          {backendData.isRegistering && (
+            <motion.div
+              ref={signUpRef}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixedBox'
+            >
+              <SignUp />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+          <h1 className="text-2xl font-bold mb-4">Please login to watch videos</h1>
+          <div className="flex gap-4">
+            <Button
+              onClick={backendData.onLoginClick}
+              className="btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] border-secondary/30"
+            >
+              Login
+            </Button>
+            <Button
+              onClick={backendData.onSignupClick}
+              className="btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem]"
+            >
+              Sign up
+            </Button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return <div className="flex justify-center items-center h-screen"> <Loading/> </div>
   }
 
   if (error) {

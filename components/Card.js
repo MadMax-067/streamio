@@ -1,27 +1,38 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from 'react'
+import styled from 'styled-components'
+import Image from 'next/image'
 
 const Card = ({ thumbnail, duration }) => {
   const formatDuration = (totalSeconds) => {
-    if (!totalSeconds) return '';
+    if (!totalSeconds) return ''
 
     // Round down fractional seconds
-    const flooredSeconds = Math.floor(totalSeconds);
+    const flooredSeconds = Math.floor(totalSeconds)
 
-    const hours = Math.floor(flooredSeconds / 3600);
-    const minutes = Math.floor((flooredSeconds % 3600) / 60);
-    const seconds = flooredSeconds % 60;
+    const hours = Math.floor(flooredSeconds / 3600)
+    const minutes = Math.floor((flooredSeconds % 3600) / 60)
+    const seconds = flooredSeconds % 60
 
-    const hh = hours.toString().padStart(2, '0');
-    const mm = minutes.toString().padStart(2, '0');
-    const ss = seconds.toString().padStart(2, '0');
+    const hh = hours.toString().padStart(2, '0')
+    const mm = minutes.toString().padStart(2, '0')
+    const ss = seconds.toString().padStart(2, '0')
 
-    return hours > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
-  };
+    return hours > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`
+  }
 
   return (
-    <StyledWrapper thumbnail={thumbnail}>
+    <StyledWrapper>
       <div className="card">
+        <div className="card__image-wrapper">
+          <Image
+            src={thumbnail}
+            alt="Thumbnail"
+            layout="fill"
+            objectFit="cover"
+            className="card__image"
+            priority
+          />
+        </div>
         <div className="card__icons">
           <svg className="svg-icon" height={100} viewBox="0 0 100 100" width={100} xmlns="http://www.w3.org/2000/svg">
             <path d="M50,35.7V50L60.7,60.7M82.1,50A32.1,32.1,0,1,1,50,17.9,32.1,32.1,0,0,1,82.1,50Z" strokeWidth={8}></path>
@@ -39,22 +50,27 @@ const Card = ({ thumbnail, duration }) => {
         )}
       </div>
     </StyledWrapper>
-  );
-};
+  )
+}
 
 const StyledWrapper = styled.div`
   .card {
     width: 22rem;
     height: 14.5rem;
     aspect-ratio: 16/9;
-    background-image: ${(props) => `url(${props.thumbnail})`};
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    position: relative;
     border-radius: 1.25rem;
     border: 0.0625rem solid rgb(156, 151, 151);
-    position: relative;
     transition: all 0.3s ease;
+    overflow: hidden; /* Ensure the image doesn't overflow the card */
+  }
+
+  .card__image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 1.25rem;
+    overflow: hidden;
   }
 
   .card__icons {
@@ -67,6 +83,9 @@ const StyledWrapper = styled.div`
     opacity: 0;
     transition: all 0.3s ease;
     cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 
   .card__time {
@@ -147,6 +166,6 @@ const StyledWrapper = styled.div`
       height: 14.5rem;
     }
   }
-`;
+`
 
-export default Card;
+export default Card

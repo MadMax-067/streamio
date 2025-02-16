@@ -1,5 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: true,
+    compiler: {
+        styledComponents: true,
+    },
+    webpack: (config) => {
+        config.experiments = {
+            ...config.experiments,
+            topLevelAwait: true,
+        }
+        return config
+    },
     async rewrites() {
         return [
             {
@@ -9,11 +20,11 @@ const nextConfig = {
         ];
     },
     images: {
-        domains: ['res.cloudinary.com'], 
+        domains: ['res.cloudinary.com'],
     },
     eslint: {
         ignoreDuringBuilds: true,
-      },
+    },
 };
 
 export default nextConfig;
