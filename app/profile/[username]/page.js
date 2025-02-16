@@ -12,6 +12,7 @@ import BottomBar from '@/components/BottomBar'
 import Image from 'next/image'
 import Loading from '@/components/Loading'
 import AuthCheck from '@/components/AuthCheck'
+import VideoUpload from '@/components/VideoUpload'
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
@@ -227,88 +228,7 @@ export default function ProfilePage() {
             </Button>
 
             {showUploadModal && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-              >
-                <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold">Upload Video</h3>
-                    <button
-                      onClick={() => setShowUploadModal(false)}
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleUpload} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Video File (MP4)
-                      </label>
-                      <input
-                        type="file"
-                        accept="video/mp4"
-                        onChange={(e) => setUploadData({ ...uploadData, video: e.target.files[0] })}
-                        className="w-full bg-gray-700 rounded-lg p-2"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Thumbnail Image
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setUploadData({ ...uploadData, thumbnail: e.target.files[0] })}
-                        className="w-full bg-gray-700 rounded-lg p-2"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Title</label>
-                      <input
-                        type="text"
-                        value={uploadData.title}
-                        onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
-                        className="w-full bg-gray-700 rounded-lg p-2"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Description</label>
-                      <textarea
-                        value={uploadData.description}
-                        onChange={(e) => setUploadData({ ...uploadData, description: e.target.value })}
-                        className="w-full bg-gray-700 rounded-lg p-2 min-h-[100px]"
-                      />
-                    </div>
-
-                    {isUploading && (
-                      <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      disabled={isUploading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
-                    >
-                      {isUploading ? `Uploading... ${uploadProgress}%` : 'Upload'}
-                    </Button>
-                  </form>
-                </div>
-              </motion.div>
+              <VideoUpload onClose={() => setShowUploadModal(false)} />
             )}
           </div>
         )}
