@@ -88,12 +88,18 @@ const StyledVideoCard = styled.div`
   }
 `;
 
-const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, duration }) => {
+const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, duration, channelUsername }) => {
   const router = useRouter()
 
   const handleVideoClick = async (e) => {
     e.preventDefault()
     await prefetchAndNavigate(router, `/video/${videoId}`)
+  }
+
+  const handleChannelClick = async (e) => {
+    e.preventDefault()
+    e.stopPropagation() // Prevent video click handler from firing
+    await prefetchAndNavigate(router, `/profile/${channelUsername}`)
   }
 
   return (
@@ -107,7 +113,11 @@ const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, dura
             <Card duration={duration} thumbnail={thumbnail} />
           </div>
           <div className="video-info">
-            <div className="avatar-container relative rounded-full overflow-hidden">
+            <Link 
+              href={`/profile/${channelUsername}`}
+              onClick={handleChannelClick}
+              className="avatar-container relative rounded-full overflow-hidden hover:opacity-80 transition-opacity"
+            >
               <Image
                 src={avatar}
                 alt={channelName}
@@ -115,10 +125,16 @@ const VideoCard = ({ videoId, title, thumbnail, channelName, views, avatar, dura
                 style={{ objectFit: 'cover' }}
                 className="w-full h-full"
               />
-            </div>
+            </Link>
             <div className="text-container">
               <h3 className="video-title text-secondary font-semibold">{title}</h3>
-              <h6 className="channel-name">{channelName}</h6>
+              <Link 
+                href={`/profile/${channelUsername}`}
+                onClick={handleChannelClick}
+                className="channel-name hover:text-blue-400 transition-colors"
+              >
+                {channelName}
+              </Link>
               <h6 className="views">{views}</h6>
             </div>
           </div>

@@ -32,6 +32,7 @@ const Hero = () => {
                                 views={video.views} 
                                 duration={video.duration} 
                                 avatar={video.owner.avatar} 
+                                channelUsername={video.owner.username}
                             />
                         ))
                     )}
