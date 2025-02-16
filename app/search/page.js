@@ -86,13 +86,15 @@ function SearchContent() {
               key={result._id}
               className="flex items-center gap-4 p-4 hover:bg-gray-800/50 rounded-lg transition"
             >
-              <Image
-                src={result.avatar}
-                alt={result.username}
-                width={80}
-                height={80}
-                className="rounded-full"
-              />
+              <div className="relative w-20 h-20">  {/* Fixed size container */}
+                <Image
+                  src={result.avatar}
+                  alt={result.username}
+                  fill
+                  className="rounded-full object-cover"
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </div>
               <div>
                 <h3 className="text-lg font-semibold">{result.fullName}</h3>
                 <p className="text-gray-400">@{result.username}</p>
@@ -120,13 +122,15 @@ function SearchContent() {
               <div className="flex-1">
                 <h3 className="text-lg font-semibold line-clamp-2">{result.title}</h3>
                 <div className="flex items-center gap-2 mt-2">
-                  <Image
-                    src={result.channel.avatar}
-                    alt={result.channel.username}
-                    width={24}
-                    height={24}
-                    className="rounded-full"
-                  />
+                  <div className="relative w-6 h-6">  {/* Fixed size container */}
+                    <Image
+                      src={result.channel.avatar}
+                      alt={result.channel.username}
+                      fill
+                      className="rounded-full object-cover"
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  </div>
                   <p className="text-gray-400">{result.channel.username}</p>
                 </div>
                 <div className="flex gap-2 text-sm text-gray-500 mt-1">
