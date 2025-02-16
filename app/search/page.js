@@ -5,20 +5,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import BottomBar from '@/components/BottomBar'
+import { useSearchParams } from 'next/navigation'
 
 export default function SearchResults() {
-  const [query, setQuery] = useState('')
+  const searchParams = useSearchParams()
+  const [query, setQuery] = useState(searchParams.get('q') || '')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  // Manually read query from window location
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URL(window.location.href).searchParams
-      setQuery(params.get('q') || '')
-    }
-  }, [])
 
   // Fetch search results whenever 'query' changes
   useEffect(() => {
@@ -36,6 +30,11 @@ export default function SearchResults() {
     }
     fetchResults()
   }, [query])
+
+  // Update query state whenever the searchParams change
+  useEffect(() => {
+    setQuery(searchParams.get('q') || '')
+  }, [searchParams])
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>
