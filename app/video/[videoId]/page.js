@@ -112,23 +112,7 @@ export default function VideoPage({ params }) {
       try {
         const commentsResponse = await axios.get(`/api/comments/${slug}`)
         const fetchedComments = commentsResponse.data?.data?.comments || []
-        const mappedComments = fetchedComments.map((item) => ({
-          id: item._id,
-          user: item.owner?.fullName || item.owner?.username || "Unknown User",
-          username: item.owner?.username,
-          avatar: item.owner?.avatar || "/placeholder.svg?height=40&width=40",
-          content: item.content,
-          likes: item.likesCount || 0,
-          isLiked: item.isLiked || false,
-          timestamp: new Date(item.createdAt).toLocaleString(),
-          replies: [],
-        }))
-        setComments(mappedComments)
-        const initialLikes = {}
-        mappedComments.forEach((comment) => {
-          initialLikes[comment.id] = comment.isLiked
-        })
-        setCommentLikes(initialLikes)
+        setComments(fetchedComments)
       } catch (error) {
         console.error('Comments fetch error:', error)
         // Don't set the main error state, just log it
@@ -191,23 +175,9 @@ export default function VideoPage({ params }) {
   const handleCommentLike = async (commentId) => {
     try {
       await axios.post(`/api/likes/toggle/c/${commentId}`)
-      setComments((prevComments) =>
-        prevComments.map((comment) => {
-          if (comment.id === commentId) {
-            const isCurrentlyLiked = commentLikes[commentId]
-            return {
-              ...comment,
-              likes: isCurrentlyLiked ? comment.likes - 1 : comment.likes + 1,
-              isLiked: !isCurrentlyLiked,
-            }
-          }
-          return comment
-        }),
-      )
-      setCommentLikes((prev) => ({
-        ...prev,
-        [commentId]: !prev[commentId],
-      }))
+      // Fetch fresh comments after like
+      const commentsResponse = await axios.get(`/api/comments/${slug}`)
+      setComments(commentsResponse.data?.data?.comments || [])
     } catch (error) {
       console.error(error)
     }
@@ -223,18 +193,7 @@ export default function VideoPage({ params }) {
         content: trimmedComment,
       })
       const response = await axios.get(`/api/comments/${slug}`)
-      const fetchedComments = response.data?.data?.comments || []
-      const mappedComments = fetchedComments.map((item) => ({
-        id: item._id,
-        user: item.owner?.fullName || item.owner?.username || "Unknown User",
-        avatar: item.owner?.avatar || "/placeholder.svg?height=40&width=40",
-        content: item.content,
-        likes: item.likesCount || 0,
-        isLiked: item.isLiked || false,
-        timestamp: new Date(item.createdAt).toLocaleString(),
-        replies: [],
-      }))
-      setComments(mappedComments)
+      setComments(response.data?.data?.comments || [])
       setNewComment("")
     } catch (error) {
       console.error(error)
@@ -694,15 +653,15 @@ export default function VideoPage({ params }) {
               {/* Comments List - Mobile optimized spacing */}
               <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="p-2">
+                  <div key={comment._id} className="p-2">
                     <div className="flex gap-3">
                       <Link 
-                        href={`/profile/${comment.username}`} 
+                        href={`/profile/${comment.owner.username}`} 
                         className="shrink-0"
                       >
                         <Image
-                          src={comment.avatar || "/placeholder.svg"}
-                          alt={`${comment.user}'s avatar`}
+                          src={comment.owner.avatar || "/placeholder.svg"}
+                          alt={comment.owner.fullName}
                           width={40}
                           height={40}
                           className="h-8 w-8 md:h-10 md:w-10 rounded-full hover:opacity-80 transition-opacity"
@@ -711,26 +670,27 @@ export default function VideoPage({ params }) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <Link 
-                            href={`/profile/${comment.username}`}
+                            href={`/profile/${comment.owner.username}`}
                             className="font-medium text-sm md:text-base hover:text-blue-400 transition-colors"
                           >
-                            {comment.user}
+                            {comment.owner.fullName}
                           </Link>
-                          <span className="text-xs md:text-sm text-gray-400">{comment.timestamp}</span>
+                          <span className="text-xs md:text-sm text-gray-400">
+                            {new Date(comment.createdAt).toLocaleString()}
+                          </span>
                         </div>
-                        <p className="mt-1 text-sm md:text-base break-words">{comment.content}</p>
+                        <p className="mt-1 text-sm md:text-base break-words">
+                          {comment.content}
+                        </p>
                         <div className="flex items-center gap-4 mt-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             className={`flex items-center gap-1 ${comment.isLiked ? "text-blue-500" : ""}`}
-                            onClick={() => handleCommentLike(comment.id)}
+                            onClick={() => handleCommentLike(comment._id)}
                           >
                             <ThumbsUp className="w-4 h-4" />
-                            {comment.likes}
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            Reply
+                            {comment.likesCount}
                           </Button>
                         </div>
                       </div>
