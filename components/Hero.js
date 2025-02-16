@@ -27,6 +27,7 @@ const Hero = () => {
                                 key={video._id} 
                                 videoId={video._id} 
                                 title={video.title} 
+                                description={video.description}
                                 channelName={video.owner.username} 
                                 thumbnail={video.thumbnail} 
                                 views={video.views} 

@@ -244,11 +244,15 @@ export default function ProfilePage() {
                     key={video._id}
                     videoId={video._id}
                     title={video.title}
+                    description={video.description}
                     thumbnail={video.thumbnail}
                     channelName={profileData.fullName}
+                    channelUsername={profileData.username}
                     views={formatViews(video.views || 0)}
                     avatar={profileData.avatar}
                     duration={video.duration}
+                    isOwner={params.username === backendData?.userData?.username}
+                    isPublished={video.isPublished}
                   />
                 </div>
               ))}
