@@ -223,8 +223,7 @@ const StyledWrapper = styled.div`
     height: 14.5rem;
     aspect-ratio: 16/9;
     position: relative;
-    border-radius: 1.25rem;
-    border: 0.0625rem solid rgb(156, 151, 151);
+    border-radius: 0.75rem;
     transition: all 0.3s ease;
     overflow: hidden; /* Ensure the image doesn't overflow the card */
   }
@@ -233,7 +232,7 @@ const StyledWrapper = styled.div`
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 1.25rem;
+    border-radius: 0.75rem;
     overflow: hidden;
   }
 
