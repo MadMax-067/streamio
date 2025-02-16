@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
 import { Button } from '@/components/ui/button'
+import SearchSkeleton from '@/components/SearchSkeleton'
+import NoResults from '@/components/NoResults'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +33,11 @@ function SearchContent() {
         const response = await axios.get(`/api/global-search?search=${encodeURIComponent(query)}`)
         setResults(response.data.data.results)
       } catch (err) {
-        setError(err.message)
+        if (err.response?.status === 404) {
+          setResults([])
+        } else {
+          setError(err.message)
+        }
       } finally {
         setLoading(false)
       }
@@ -44,8 +50,29 @@ function SearchContent() {
     setQuery(searchParams.get('q') || '')
   }, [searchParams])
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loading /></div>
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>
+  if (loading) return (
+    <div className="min-h-screen p-4 md:p-8 pb-20 md:pb-8">
+      <div className="skeleton h-8 w-64 rounded mb-6" />
+      {[1, 2, 3, 4].map((i) => (
+        <SearchSkeleton key={i} />
+      ))}
+    </div>
+  )
+  
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-center"
+        >
+          <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
+          <p>{error}</p>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8 pb-20 md:pb-8">
@@ -113,9 +140,13 @@ function SearchContent() {
           )
         ))}
 
-        {results.length === 0 && (
+        {results.length === 0 && query && (
+          <NoResults query={query} />
+        )}
+
+        {!query && (
           <div className="text-center text-gray-500">
-            No results found for "{query}"
+            Start typing to search...
           </div>
         )}
       </div>
