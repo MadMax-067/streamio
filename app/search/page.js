@@ -161,22 +161,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   const backendData = useContext(BackendContext)
-  const loginRef = useRef(null)
-  const signUpRef = useRef(null)
-
-  const handleClickOutside = (event) => {
-    if (loginRef.current && !loginRef.current.contains(event.target)) {
-      backendData.setIsLogging(false)
-    }
-    if (signUpRef.current && !signUpRef.current.contains(event.target)) {
-      backendData.setIsRegistering(false)
-    }
-  }
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  
 
   if (!backendData.isLoggedIn) {
     return <AuthCheck message="Please login to search videos" />

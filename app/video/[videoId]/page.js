@@ -78,8 +78,6 @@ export default function VideoPage({ params }) {
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false)
   const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' })
   const [showShareDialog, setShowShareDialog] = useState(false)
-  const loginRef = useRef(null)
-  const signUpRef = useRef(null)
 
   useEffect(() => {
     const fetchVideoData = async () => {
@@ -315,20 +313,6 @@ export default function VideoPage({ params }) {
     }
     return count
   }
-
-  const handleClickOutside = (event) => {
-    if (loginRef.current && !loginRef.current.contains(event.target)) {
-      backendData.setIsLogging(false)
-    }
-    if (signUpRef.current && !signUpRef.current.contains(event.target)) {
-      backendData.setIsRegistering(false)
-    }
-  }
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   if (!backendData.isLoggedIn) {
     return <AuthCheck message="Please login to watch videos" />

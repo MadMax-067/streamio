@@ -225,7 +225,7 @@ const StyledWrapper = styled.div`
     position: relative;
     border-radius: 0.75rem;
     transition: all 0.3s ease;
-    overflow: hidden; /* Ensure the image doesn't overflow the card */
+    overflow: hidden; 
   }
 
   .card__image-wrapper {

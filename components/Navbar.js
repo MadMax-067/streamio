@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { BackendContext } from './Providers';
 import { useRouter } from 'next/navigation'
 import { prefetchAndNavigate } from '@/utils/navigation'
+import { User, Settings, LogOut } from 'lucide-react'
 
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
 
@@ -42,28 +43,63 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                     </button>
                 </div>)}
                 <Search />
-                {!backendData.isMobile && (!backendData.isLoggedIn ? (<div className='flex gap-3' >
-                    <button onClick={backendData.onLoginClick} className='btn min-h-0 btn-accent text-secondary/70 md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg border-secondary/30'>Login</button>
-                    <button onClick={backendData.onSignupClick} className='btn min-h-0 btn-primary text-secondary md:rounded-[0.85rem] 2xl:rounded-2xl md:w-24 md:h-9 2xl:w-[6.25rem] 2xl:h-10 2xl:text-lg'>Sign up</button>
-                </div>) : (<div className='flex items-center justify-end w-[12.8rem]' ref={dropdownRef}>
-                    <div className="relative">
-                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="m-1">
-                            <div className="avatar h-9 w-9 rounded-full">
-                                <div className="ring-primary ring-offset-accent w-20 rounded-full ring ring-offset-2">
-                                    <Image className='rounded-full h-9 w-9' fill style={{ objectFit: 'cover' }} src={backendData?.userData?.avatar} alt={backendData?.userData?.username} />
-                                </div>
-                            </div>
+                {!backendData.isMobile && (!backendData.isLoggedIn ? (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => router.push('/login')}
+                            className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                        >
+                            Login
                         </button>
+                        <button
+                            onClick={() => router.push('/signup')}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                            Sign up
+                        </button>
+                    </div>
+                ) : (
+                    <div className="relative" ref={dropdownRef}>
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="flex items-center gap-2 hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                        >
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                                <Image
+                                    src={backendData.userData?.avatar || '/default-avatar.png'}
+                                    alt="Profile"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                            <span className="hidden md:block">{backendData.userData?.username}</span>
+                        </button>
+
                         {isDropdownOpen && (
-                            <ul className="absolute right-0 mt-2 backdrop-blur-[1rem] menu bg-primary/10 text-secondary rounded-box z-[1] w-40 p-2 shadow">
-                                <li>
-                                    <Link href={`/profile/${backendData?.userData?.username}`}>Profile</Link>
-                                </li>
-                                <li><a onClick={backendData.logoutHandle}>Logout</a></li>
-                            </ul>
+                            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg py-1 z-50">
+                                <Link
+                                    href={`/profile/${backendData.userData?.username}`}
+                                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
+                                >
+                                    Profile
+                                </Link>
+                                <Link
+                                    href="/settings"
+                                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
+                                >
+                                    Settings
+                                </Link>
+                                <div className="border-t border-gray-700 my-1" />
+                                <button
+                                    onClick={backendData.logoutHandle}
+                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700/50 transition-colors"
+                                >
+                                    Logout
+                                </button>
+                            </div>
                         )}
                     </div>
-                </div>))}
+                ))}
             </div>
         </nav>
     )

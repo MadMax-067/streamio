@@ -1,45 +1,18 @@
 "use client"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Video, Users } from 'lucide-react'
-import { useContext, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { useContext } from 'react'
 import { BackendContext } from './Providers'
-import SignUp from './SignUp'
-import Login from './Login'
 
 const AuthCheck = ({ message = "Please login to continue" }) => {
     const backendData = useContext(BackendContext)
-    const loginRef = useRef(null)
-    const signUpRef = useRef(null)
+    const router = useRouter()
 
     if (backendData.isLoggedIn) return null
 
     return (
         <main className="min-h-screen">
-            <AnimatePresence>
-                {backendData.isLogging && (
-                    <motion.div
-                        ref={loginRef}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className='fixedBox'
-                    >
-                        <Login />
-                    </motion.div>
-                )}
-                {backendData.isRegistering && (
-                    <motion.div
-                        ref={signUpRef}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className='fixedBox'
-                    >
-                        <SignUp />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             <div className="container mx-auto px-4 py-16 md:py-24">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -86,13 +59,13 @@ const AuthCheck = ({ message = "Please login to continue" }) => {
                 >
                     <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
                         <button
-                            onClick={backendData.onSignupClick}
+                            onClick={() => router.push('/signup')}
                             className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-lg font-semibold transition-colors"
                         >
                             Get Started
                         </button>
                         <button
-                            onClick={backendData.onLoginClick}
+                            onClick={() => router.push('/login')}
                             className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-lg font-semibold transition-colors"
                         >
                             Sign In

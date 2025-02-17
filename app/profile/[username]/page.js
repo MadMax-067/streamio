@@ -23,9 +23,7 @@ export default function ProfilePage() {
   const [error, setError] = useState(null)
   const params = useParams()
 
-  const loginRef = useRef(null)
-  const signUpRef = useRef(null)
-
+ 
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -36,19 +34,6 @@ export default function ProfilePage() {
     thumbnail: null
   })
 
-  const handleClickOutside = (event) => {
-    if (loginRef.current && !loginRef.current.contains(event.target)) {
-      backendData.setIsLogging(false)
-    }
-    if (signUpRef.current && !signUpRef.current.contains(event.target)) {
-      backendData.setIsRegistering(false)
-    }
-  }
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -147,29 +132,6 @@ export default function ProfilePage() {
 
   return (
     <>
-      <AnimatePresence>
-        {backendData.isLogging && (
-          <motion.div
-            ref={loginRef}
-            key="loginModal"
-            exit={{ opacity: 0 }}
-            className='fixedBox'
-          >
-            <Login />
-          </motion.div>
-        )}
-        {backendData.isRegistering && (
-          <motion.div
-            ref={signUpRef}
-            key="signUpModal"
-            exit={{ opacity: 0 }}
-            className='fixedBox'
-          >
-            <SignUp />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="min-h-screen pb-20 md:pb-0">
         {/* Cover Image */}
         <div className="h-32 md:h-48 bg-gray-800 relative">
