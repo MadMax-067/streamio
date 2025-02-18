@@ -16,9 +16,13 @@ const Main = (props) => {
     const backendData = useContext(BackendContext)
     const router = useRouter()
 
-    if (!backendData.isLoggedIn) {
-        return <AuthCheck message="Please login to continue" />
-    }
+    useEffect(() => {
+        if (!backendData.isLoggedIn) {
+            router.push('/welcome')
+        }
+    }, [backendData.isLoggedIn, router])
+    
+    if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
 
     return (
         <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>

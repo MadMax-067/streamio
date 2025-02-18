@@ -51,8 +51,10 @@ import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
 import Link from 'next/link'
 import AuthCheck from '@/components/AuthCheck'
+import { useRouter } from 'next/navigation'
 
 export default function VideoPage({ params }) {
+  const router = useRouter()
   const playerRef = useRef(null)
   const [playing, setPlaying] = useState(true)  // Changed from false to true
   const [volume, setVolume] = useState(1)
@@ -79,6 +81,14 @@ export default function VideoPage({ params }) {
   const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' })
   const [showShareDialog, setShowShareDialog] = useState(false)
 
+  useEffect(() => {
+    if (!backendData.isLoggedIn) {
+        router.push('/welcome')
+    }
+}, [backendData.isLoggedIn, router])
+
+if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
+  
   useEffect(() => {
     const fetchVideoData = async () => {
       if (!slug) return
@@ -312,10 +322,6 @@ export default function VideoPage({ params }) {
       return `${(count / 1000).toFixed(1)}K`
     }
     return count
-  }
-
-  if (!backendData.isLoggedIn) {
-    return <AuthCheck message="Please login to watch videos" />
   }
 
   if (isLoading) {

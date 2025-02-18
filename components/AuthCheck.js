@@ -1,13 +1,33 @@
 "use client"
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useTransform, animate } from "framer-motion"
 import { Video, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useContext } from 'react'
 import { BackendContext } from './Providers'
+import Image from 'next/image'
 
 const AuthCheck = ({ message = "Please login to continue" }) => {
     const backendData = useContext(BackendContext)
     const router = useRouter()
+
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
+    const rotateX = useTransform(mouseY, [-300, 300], [10, -10])
+    const rotateY = useTransform(mouseX, [-300, 300], [-10, 10])
+
+    const handleMouseMove = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        
+        animate(mouseX, event.clientX - centerX)
+        animate(mouseY, event.clientY - centerY)
+    }
+
+    const handleMouseLeave = () => {
+        animate(mouseX, 0)
+        animate(mouseY, 0)
+    }
 
     if (backendData.isLoggedIn) return null
 
@@ -50,6 +70,41 @@ const AuthCheck = ({ message = "Please login to continue" }) => {
                         <p className="text-gray-400 text-center">Join a vibrant community of content creators and viewers</p>
                     </motion.div>
                 </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="max-w-5xl mx-auto mb-16 perspective-1000"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    <motion.div
+                        className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-gray-800/50 p-2"
+                        style={{
+                            rotateX,
+                            rotateY,
+                            transformStyle: "preserve-3d"
+                        }}
+                    >
+                        <motion.div
+                            className="absolute inset-0 opacity-50 bg-gradient-to-br from-blue-500/20 to-purple-500/20"
+                            style={{
+                                rotateX,
+                                rotateY,
+                                transformStyle: "preserve-3d"
+                            }}
+                        />
+                        <Image
+                            src="/platform-preview.png"
+                            alt="Streamio Platform Preview"
+                            width={1920}
+                            height={1080}
+                            className="w-full h-auto rounded-lg relative z-10"
+                            priority
+                        />
+                    </motion.div>
+                </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

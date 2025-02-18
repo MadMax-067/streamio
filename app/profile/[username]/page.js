@@ -13,6 +13,7 @@ import Image from 'next/image'
 import Loading from '@/components/Loading'
 import AuthCheck from '@/components/AuthCheck'
 import VideoUpload from '@/components/VideoUpload'
+import { useRouter } from 'next/navigation'
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const params = useParams()
+  const router = useRouter()
 
  
   const [isUploading, setIsUploading] = useState(false)
@@ -100,9 +102,13 @@ export default function ProfilePage() {
     }
   }
 
-  if (!backendData.isLoggedIn) {
-    return <AuthCheck message="Please login to view profiles" />
-  }
+  useEffect(() => {
+    if (!backendData.isLoggedIn) {
+        router.push('/welcome')
+    }
+}, [backendData.isLoggedIn, router])
+
+if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
 
   if (isLoading) {
     return (
@@ -118,16 +124,6 @@ export default function ProfilePage() {
         {error}
       </div>
     )
-  }
-
-  const formatViews = (views) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M views`
-    }
-    if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K views`
-    }
-    return `${views} views`
   }
 
   return (
@@ -210,9 +206,10 @@ export default function ProfilePage() {
                     thumbnail={video.thumbnail}
                     channelName={profileData.fullName}
                     channelUsername={profileData.username}
-                    views={formatViews(video.views || 0)}
+                    views={video.views || 0} 
                     avatar={profileData.avatar}
                     duration={video.duration}
+                    createdAt={video.createdAt}
                     isOwner={params.username === backendData?.userData?.username}
                     isPublished={video.isPublished}
                   />

@@ -34,6 +34,7 @@ const Hero = () => {
                                 duration={video.duration} 
                                 avatar={video.owner.avatar} 
                                 channelUsername={video.owner.username}
+                                createdAt={video.createdAt}
                             />
                         ))
                     )}

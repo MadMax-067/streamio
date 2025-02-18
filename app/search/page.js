@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import BottomBar from '@/components/BottomBar'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Loading from '@/components/Loading'
 import { BackendContext } from '@/components/Providers'
 import { motion, AnimatePresence } from "framer-motion"
@@ -160,13 +160,17 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
+  const router = useRouter()
   const backendData = useContext(BackendContext)
   
+  useEffect(() => {
+    if (!backendData.isLoggedIn) {
+        router.push('/welcome')
+    }
+}, [backendData.isLoggedIn, router])
 
-  if (!backendData.isLoggedIn) {
-    return <AuthCheck message="Please login to search videos" />
-  }
-
+if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
+  
   return (
     <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>
       <SearchContent />

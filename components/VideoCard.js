@@ -22,8 +22,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ImageIcon } from 'lucide-react'
+import { Space_Grotesk } from 'next/font/google'
+import { formatDistanceToNow } from 'date-fns'
 
 const nunito = localFont({ src: '../fonts/Nunito.ttf' });
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 const StyledVideoCard = styled.div`
   .video-card {
@@ -36,8 +39,8 @@ const StyledVideoCard = styled.div`
   .video-info {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.375rem 0.25rem; /* Reduced horizontal padding */
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem; /* Reduced horizontal padding */
   }
 
   .avatar-container {
@@ -52,22 +55,37 @@ const StyledVideoCard = styled.div`
   }
 
   .video-title {
-    font-size: clamp(0.875rem, 1.2vw, 1.125rem);
-    margin: 0.25rem 0;
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    color: rgb(var(--secondary-rgb));
   }
 
   .channel-name {
-    font-size: clamp(0.75rem, 1vw, 0.875rem);
-    color: rgba(var(--secondary-rgb), 0.5);
+    font-size: 0.875rem;
+    color: rgb(var(--secondary-rgb), 0.7);
+    transition: color 0.2s ease;
+    margin-bottom: 0.125rem;
   }
 
-  .views {
-    font-size: clamp(0.7rem, 0.9vw, 0.75rem);
-    color: rgba(var(--secondary-rgb), 0.5);
+  .meta-info {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: rgb(var(--secondary-rgb), 0.6);
+    font-size: 0.875rem;
+  }
+
+  .meta-dot {
+    width: 2px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 50%;
   }
 
   @media (max-width: 48rem) { /* Mobile */
@@ -114,6 +132,7 @@ const VideoCard = ({
   avatar, 
   duration, 
   channelUsername,
+  createdAt,
   isOwner = false, 
   isPublished = true 
 }) => {
@@ -207,6 +226,16 @@ const VideoCard = ({
     }
   }
 
+  const formatViews = (views) => {
+    if (views >= 1000000) {
+      return `${(views / 1000000).toFixed(1)}M views`
+    }
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}K views`
+    }
+    return `${views} views`
+  }
+
   return (
     <>
       <StyledVideoCard>
@@ -232,9 +261,11 @@ const VideoCard = ({
                   className="w-full h-full"
                 />
               </Link>
-              <div className="text-container relative">
+              <div className="text-container">
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="video-title text-secondary font-semibold">{title}</h3>
+                  <h3 className={`video-title ${spaceGrotesk.className}`}>
+                    {title}
+                  </h3>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <button className="p-1 hover:bg-gray-800 rounded-full">
@@ -297,11 +328,15 @@ const VideoCard = ({
                 <Link
                   href={`/profile/${channelUsername}`}
                   onClick={handleChannelClick}
-                  className="channel-name hover:text-blue-400 transition-colors"
+                  className={`channel-name hover:text-blue-400 transition-colors ${spaceGrotesk.className}`}
                 >
                   {channelName}
                 </Link>
-                <h6 className="views">{views}</h6>
+                <div className={`meta-info ${spaceGrotesk.className}`}>
+                  <span>{formatViews(views)}</span>
+                  <div className="meta-dot" />
+                  <span>{formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
+                </div>
               </div>
             </div>
           </div>
