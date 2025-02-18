@@ -382,7 +382,7 @@ export default function VideoPage({ params }) {
                 }}
               />
               {/* Custom Controls */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 {/* Progress Bar */}
                 <Slider
                   value={[played]}
@@ -394,21 +394,21 @@ export default function VideoPage({ params }) {
 
                 <div className="flex items-center gap-4">
                   {/* Play/Pause */}
-                  <Button variant="ghost" size="icon" onClick={handlePlayPause} className="hover:bg-white/10">
+                  <Button variant="ghost" size="icon" onClick={handlePlayPause} className="hover:bg-gray-900/80 transition-colors">
                     {playing ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                   </Button>
 
                   {/* Skip Buttons */}
-                  <Button variant="ghost" size="icon" className="hover:bg-white/10">
+                  <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
                     <SkipBack className="w-5 h-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="hover:bg-white/10">
+                  <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
                     <SkipForward className="w-5 h-5" />
                   </Button>
 
                   {/* Volume Control */}
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={handleToggleMute} className="hover:bg-white/10">
+                    <Button variant="ghost" size="icon" onClick={handleToggleMute} className="hover:bg-gray-900/80 transition-colors">
                       {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </Button>
                     <Slider
@@ -427,10 +427,10 @@ export default function VideoPage({ params }) {
 
                   {/* Settings & Fullscreen */}
                   <div className="ml-auto flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="hover:bg-white/10">
+                    <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
                       <Settings className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen} className="hover:bg-white/10">
+                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen} className="hover:bg-gray-900/80 transition-colors">
                       <Maximize2 className="w-5 h-5" />
                     </Button>
                   </div>
@@ -503,7 +503,7 @@ export default function VideoPage({ params }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`flex items-center gap-2 bg-gray-800 hover:bg-gray-700 shrink-0 ${
+                      className={`flex items-center gap-2 bg-gray-800/80 hover:bg-gray-700 shrink-0 ${
                         isSaved ? "text-blue-500" : ""
                       }`}
                     >
@@ -511,18 +511,21 @@ export default function VideoPage({ params }) {
                       <span className="hidden md:inline">Save</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+                  <DropdownMenuContent 
+                    className="w-56 bg-gray-800 border-gray-700 rounded-lg overflow-hidden"
+                    sideOffset={5}
+                  >
                     {playlists.map((playlist) => (
                       <DropdownMenuItem
                         key={playlist._id}
-                        className="text-gray-200 hover:bg-gray-700 cursor-pointer"
+                        className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700 focus:text-gray-200 cursor-pointer px-4 py-2"
                         onClick={() => handleAddToPlaylist(playlist._id)}
                       >
                         {playlist.name}
                       </DropdownMenuItem>
                     ))}
                     <DropdownMenuItem
-                      className="text-gray-200 hover:bg-gray-700 cursor-pointer"
+                      className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700 focus:text-gray-200 cursor-pointer px-4 py-2"
                       onClick={() => setShowCreatePlaylist(true)}
                     >
                       Create new playlist
@@ -532,27 +535,34 @@ export default function VideoPage({ params }) {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="bg-gray-800 hover:bg-gray-700 shrink-0">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="bg-gray-800/80 hover:bg-gray-700 shrink-0"
+                    >
                       <MoreVertical className="w-5 h-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+                  <DropdownMenuContent 
+                    className="w-56 bg-gray-800 border-gray-700 rounded-lg overflow-hidden"
+                    sideOffset={5}
+                  >
                     <DropdownMenuItem 
-                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700 focus:text-gray-200 cursor-pointer px-4 py-2 flex items-center gap-2"
                       onClick={handleAddToWatchLater}
                     >
                       <PlaySquare className="w-4 h-4" />
                       <span>Save to Watch Later</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700 focus:text-gray-200 cursor-pointer px-4 py-2 flex items-center gap-2"
                       onClick={() => window.open(videoUrl, '_blank')}
                     >
                       <Download className="w-4 h-4" />
                       <span>Download</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      className="text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center gap-2"
+                      className="text-gray-200 hover:bg-gray-700 focus:bg-gray-700 focus:text-gray-200 cursor-pointer px-4 py-2 flex items-center gap-2"
                       onClick={handleReport}
                     >
                       <Flag className="w-4 h-4" />

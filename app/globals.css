@@ -396,6 +396,10 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .hover-overlay {
+    @apply hover:bg-gray-900/80 transition-colors;
+  }
 }
 
 .video-container {
@@ -404,4 +408,15 @@ body {
 
 .video-controls {
   @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4;
+}
+
+.video-controls-button {
+  @apply hover:bg-gray-900/80 transition-colors backdrop-blur-sm;
+}
+
+/* Ensure video controls are always visible on touch devices */
+@media (hover: none) {
+  .group:hover .video-controls {
+    opacity: 1;
+  }
 }
