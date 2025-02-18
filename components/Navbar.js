@@ -33,13 +33,13 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
 
     const handleOptionClick = () => {
         setIsDropdownOpen(false);
-      };
+    };
 
     return (
         <nav className={`${mercenary.className} navbar flex items-center w-full h-[9.25vh]`}>
             <div className='flex w-full items-center mx-4 md:m-0 justify-center md:justify-between md:px-7 2xl:px-10 ' >
                 {!backendData.isSearching && (<div>
-                    <button 
+                    <button
                         onClick={async () => {
                             await prefetchAndNavigate(router, '/')
                         }}
@@ -103,9 +103,8 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                 </Link>
                                 <div className="border-t border-gray-700 my-1" />
                                 <button
-                                    onClick={backendData.logoutHandle}
+                                    onClick={() => { backendData.logoutHandle(); handleOptionClick(); }}
                                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700/50 transition-colors"
-                                    onClick={handleOptionClick}
                                 >
                                     <LogOut className="w-4 h-4" />
                                     <span className={spaceGrotesk.className}>Logout</span>
