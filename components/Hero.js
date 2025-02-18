@@ -12,7 +12,7 @@ const Hero = () => {
     const skeletons = Array(8).fill(null) // Show 8 skeleton cards while loading
 
     return (
-        <section className='hero inline-block md:p-4 max-h-[90.75vh] overflow-x-hidden overflow-y-scroll h-[90.75vh] md:w-[84.375vw]' >
+        <section className='hero inline-block md:p-4 max-h-[90.75vh] overflow-x-hidden overflow-y-scroll h-[90.75vh] flex-1' >
             {backendData.isLoggedIn && (
                 <div className="flex h-fit flex-col md:flex-row flex-wrap items-center md:items-start justify-center gap-12 md:gap-x-5 md:gap-y-7 px-4 md:px-0">
                     {backendData.homeLoading ? (

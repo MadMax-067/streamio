@@ -23,6 +23,21 @@ body {
 .sidebar {
   grid-row: 2/3;
   grid-column: 1/2;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+  border-radius: 3px;
 }
 
 .hero {

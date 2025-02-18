@@ -1,14 +1,33 @@
 import React from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
 
-const SideButton = ({ actionName, iconName }) => {
+const SideButton = ({ actionName, iconName, isCollapsed }) => {
+    const href = actionName.toLowerCase().replace(' ', '-')
+
     return (
-        <button className='group border border-secondary/10 focus:border-transparent flex items-center gap-3 px-3 hover:bg-secondary/10 focus:bg-secondary/10 md:h-9 2xl:h-10 w-[85%] rounded-lg' >
-            <span tabIndex={0} className='group-focus:text-primary' >
-                <FontAwesomeIcon icon={iconName} />
-            </span>
-            <div>{actionName}</div>
-        </button>
+        <Link 
+            href={`/${href === 'home' ? '' : href}`}
+            className={`w-[90%] group transition-colors ${
+                isCollapsed ? 'justify-center' : 'justify-start pl-4'
+            } flex items-center gap-3 py-2 rounded-lg hover:bg-gray-800`}
+        >
+            <FontAwesomeIcon 
+                icon={iconName} 
+                className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" 
+            />
+            {!isCollapsed && (
+                <motion.span 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-gray-400 group-hover:text-white transition-colors"
+                >
+                    {actionName}
+                </motion.span>
+            )}
+        </Link>
     )
 }
 

@@ -16,17 +16,10 @@ const Main = (props) => {
     const backendData = useContext(BackendContext)
     const router = useRouter()
 
-    useEffect(() => {
-        if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
-          router.push('/welcome')
-        }
-      }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
     
-      if (backendData.isAuthChecking || !backendData.isLoggedIn) return <div className='min-h-screen'></div>;
-
     return (
         <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>
-            <main className='grid'>
+            <main className='flex'>
                 {!backendData.isMobile && <Sidebar />}
                 <Hero />
                 {backendData.isMobile && <BottomBar />}
