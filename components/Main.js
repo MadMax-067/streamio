@@ -20,7 +20,6 @@ const Main = (props) => {
     return (
         <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>
             <main className='flex'>
-                {!backendData.isMobile && <Sidebar />}
                 <Hero />
                 {backendData.isMobile && <BottomBar />}
             </main>

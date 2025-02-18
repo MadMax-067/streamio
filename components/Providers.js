@@ -1,35 +1,57 @@
 "use client"
-import React, { useEffect, createContext, useState, useRef, use } from 'react'
+import { useEffect, createContext, useState, useRef } from 'react'
 import axios from 'axios';
+import { debounce } from 'lodash'; // Add this import
 import Navbar from './Navbar';
 import { useRouter } from 'next/navigation';
 
 export const BackendContext = createContext();
 
-// Add axios interceptor setup
+// Add a token management system
+const tokenManager = {
+    isRefreshing: false,
+    refreshSubscribers: [],
+    
+    subscribeToRefresh(callback) {
+        this.refreshSubscribers.push(callback);
+    },
+    
+    onRefreshed(token) {
+        this.refreshSubscribers.forEach(callback => callback(token));
+        this.refreshSubscribers = [];
+    }
+};
+
+// Update the axios interceptor
 axios.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // If the error is 401 and we haven't tried to refresh the token yet
-        if (error.response.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (tokenManager.isRefreshing) {
+                return new Promise(resolve => {
+                    tokenManager.subscribeToRefresh(() => {
+                        resolve(axios(originalRequest));
+                    });
+                });
+            }
+
             originalRequest._retry = true;
+            tokenManager.isRefreshing = true;
 
             try {
-                // Try to refresh the token
                 const response = await axios.post('/api/users/refresh-token', {}, {
                     withCredentials: true
                 });
 
                 if (response.data.success) {
-                    // Retry the original request
+                    tokenManager.onRefreshed();
+                    tokenManager.isRefreshing = false;
                     return axios(originalRequest);
                 }
             } catch (refreshError) {
-                // If refresh token is also expired, logout the user
-                setIsLoggedIn(false);
-                setUserData(null);
+                tokenManager.isRefreshing = false;
                 return Promise.reject(refreshError);
             }
         }
@@ -37,7 +59,6 @@ axios.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
 
 export default function Providers({ children }) {
     const [isAuthChecking, setIsAuthChecking] = useState(false);
@@ -67,45 +88,49 @@ export default function Providers({ children }) {
     });
     const router = useRouter();
 
-    const checkAuth = async () => {
-        console.log('Starting auth check...')
-        try {
-            const { data } = await axios.get('/api/users/current-user', {
-                withCredentials: true
-            })
+    const checkAuth = useRef(
+        debounce(async () => {
+            console.log('Starting auth check...')
+            try {
+                const { data } = await axios.get('/api/users/current-user', {
+                    withCredentials: true
+                })
 
-            console.log('Auth response:', data)
-            if (data.success) {
-                setIsLoggedIn(true)
-                setUserData(data.data)
-            } else {
+                console.log('Auth response:', data)
+                if (data.success) {
+                    setIsLoggedIn(true)
+                    setUserData(data.data)
+                } else {
+                    setIsLoggedIn(false)
+                    setUserData(null)
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error)
                 setIsLoggedIn(false)
                 setUserData(null)
+            } finally {
+                setIsAuthChecking(false)
             }
-        } catch (error) {
-            console.error('Auth check failed:', error)
-            setIsLoggedIn(false)
-            setUserData(null)
-        } finally {
-            console.log('Auth check complete, setting isAuthChecking to false')
-            setIsAuthChecking(false)
-        }
-    }
+        }, 5000) // 5 second debounce
+    ).current;
 
     useEffect(() => {
-        let mounted = true
+        let mounted = true;
+        const controller = new AbortController();
 
         const initAuth = async () => {
-            await checkAuth()
-            if (!mounted) return
-        }
+            if (!mounted) return;
+            await checkAuth();
+        };
 
-        initAuth()
+        initAuth();
 
         return () => {
-            mounted = false
-        }
-    }, [])
+            mounted = false;
+            controller.abort();
+            checkAuth.cancel();
+        };
+    }, [checkAuth]);
 
     console.log('Current auth state:', { isAuthChecking, isLoggedIn })
 
@@ -268,7 +293,6 @@ export default function Providers({ children }) {
 
     return (
         <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLoggedIn, setUserData, setMessage, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed, setIsLoading, isAuthChecking }}>
-            <Navbar />
             {children}
         </BackendContext.Provider>
     );

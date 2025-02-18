@@ -355,9 +355,9 @@ export default function VideoPage({ params }) {
   }
 
   return (
-    <div className={`min-h-screen text-secondary ${spaceGrotesk.className}`}>
+    <div className={`min-h-screen text-secondary ${spaceGrotesk.className} md:pb-0 pb-[4.5rem]`}>
       <div className="md:container md:mx-auto md:py-6 md:px-4">
-        <div className="flex flex-col">
+        <div className="flex flex-col max-w-[1920px] mx-auto">
           {/* Video Player - Full width on mobile */}
           <div className="relative group w-full">
              <div className="relative aspect-video bg-black md:rounded-xl overflow-hidden">
@@ -440,7 +440,7 @@ export default function VideoPage({ params }) {
           </div>
 
           {/* Video Info - Stack on mobile */}
-          <div className="flex flex-col px-4 md:px-0">
+          <div className="flex flex-col px-4 md:px-0 max-w-5xl mx-auto w-full">
             {/* Title */}
             <h1 className={`${mercenary.className} text-2xl md:text-3xl font-bold mt-4 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
               {videoData?.title}

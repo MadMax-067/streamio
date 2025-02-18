@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from 'react'
 import localFont from 'next/font/local'
 import { Space_Grotesk } from 'next/font/google'
@@ -27,7 +28,7 @@ const Sidebar = () => {
                 transition: { duration: 0.3, ease: 'easeInOut' }
             }}
         >
-            <div className='flex flex-col gap-3 w-full items-center relative'>
+            <div className='flex flex-col gap-3 w-full items-start relative'>
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className="absolute -right-3 top-2 p-1 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
@@ -45,7 +46,7 @@ const Sidebar = () => {
                 <SideButton actionName="Your videos" iconName={faVideo} isCollapsed={isCollapsed} />
                 <SideButton actionName="Liked videos" iconName={faHeart} isCollapsed={isCollapsed} />
             </div>
-            <div className='flex flex-col gap-3 w-full items-center'>
+            <div className='flex flex-col gap-3 w-full items-start'>
                 <SideButton actionName="Settings" iconName={faGear} isCollapsed={isCollapsed} />
             </div>
         </motion.aside>
