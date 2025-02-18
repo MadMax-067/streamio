@@ -2,13 +2,32 @@
 import { useContext, useEffect } from 'react'
 import { BackendContext } from '@/components/Providers'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default function WelcomePage() {
     const router = useRouter()
     const backendData = useContext(BackendContext)
+    
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
+    const rotateX = useTransform(mouseY, [-300, 300], [10, -10])
+    const rotateY = useTransform(mouseX, [-300, 300], [-10, 10])
+
+    const handleMouseMove = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        
+        animate(mouseX, event.clientX - centerX)
+        animate(mouseY, event.clientY - centerY)
+    }
+
+    const handleMouseLeave = () => {
+        animate(mouseX, 0)
+        animate(mouseY, 0)
+    }
     
     useEffect(() => {
         if (backendData.isLoggedIn) {
@@ -20,8 +39,7 @@ export default function WelcomePage() {
     
     return (
         <div className="min-h-screen flex flex-col">
-            {/* Hero Section */}
-            <div className="flex-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-8">
+            <div className="flex-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-8 bg-gradient-to-b from-gray-900 to-gray-800">
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -51,15 +69,35 @@ export default function WelcomePage() {
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="w-full md:w-1/2"
+                    className="w-full md:w-1/2 perspective-1000"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
                 >
-                    <Image
-                        src="/welcome-hero.png"
-                        alt="Streamio Platform Preview"
-                        width={600}
-                        height={400}
-                        className="rounded-lg shadow-2xl"
-                    />
+                    <motion.div
+                        className="relative rounded-xl overflow-hidden shadow-2xl bg-gray-800/50 p-2"
+                        style={{
+                            rotateX,
+                            rotateY,
+                            transformStyle: "preserve-3d"
+                        }}
+                    >
+                        <motion.div
+                            className="absolute inset-0 opacity-50 bg-gradient-to-br from-blue-500/20 to-purple-500/20"
+                            style={{
+                                rotateX,
+                                rotateY,
+                                transformStyle: "preserve-3d"
+                            }}
+                        />
+                        <Image
+                            src="/platform-preview.png"
+                            alt="Streamio Platform Preview"
+                            width={600}
+                            height={400}
+                            className="w-full h-auto rounded-lg relative z-10"
+                            priority
+                        />
+                    </motion.div>
                 </motion.div>
             </div>
         </div>
