@@ -52,6 +52,11 @@ import Login from '@/components/Login'
 import Link from 'next/link'
 import AuthCheck from '@/components/AuthCheck'
 import { useRouter } from 'next/navigation'
+import { Space_Grotesk } from 'next/font/google'
+import localFont from 'next/font/local'
+
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+const mercenary = localFont({ src: '../../../fonts/mercenaryBold.otf' })
 
 export default function VideoPage({ params }) {
   const router = useRouter()
@@ -350,7 +355,7 @@ export default function VideoPage({ params }) {
   }
 
   return (
-    <div className="min-h-screen text-secondary">
+    <div className={`min-h-screen text-secondary ${spaceGrotesk.className}`}>
       <div className="md:container md:mx-auto md:py-6 md:px-4">
         <div className="flex flex-col">
           {/* Video Player - Full width on mobile */}
@@ -437,19 +442,15 @@ export default function VideoPage({ params }) {
           {/* Video Info - Stack on mobile */}
           <div className="flex flex-col px-4 md:px-0">
             {/* Title */}
-            <h1 className="text-xl md:text-2xl font-bold mt-3">{videoData?.title}</h1>
+            <h1 className={`${mercenary.className} text-2xl md:text-3xl font-bold mt-4 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+              {videoData?.title}
+            </h1>
 
             {/* Views and date - Mobile layout */}
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
-              <span>{formatCount(videoData?.views)} views</span>
+              <span className="font-medium">{formatCount(videoData?.views)} views</span>
               <span>•</span>
-              <span>
-                {new Date(videoData?.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </span>
+              <span>{new Date(videoData?.createdAt).toLocaleDateString()}</span>
             </div>
 
             {/* Channel info and actions - Stack on mobile */}
@@ -563,20 +564,31 @@ export default function VideoPage({ params }) {
             </div>
 
             {/* Description - Collapsible on mobile */}
-            <div className="mt-4 bg-gray-800 rounded-xl p-4">
-              <div className={`${showFullDescription ? "" : "line-clamp-2"}`}>
+            <motion.div 
+              className="mt-6 bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className={`${showFullDescription ? "" : "line-clamp-3"} text-gray-300`}>
                 {videoData?.description}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2 w-full md:w-auto"
+                className="mt-3 text-gray-400 hover:text-white transition-colors"
                 onClick={() => setShowFullDescription(!showFullDescription)}
               >
-                {showFullDescription ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                {showFullDescription ? "Show less" : "Show more"}
+                {showFullDescription ? (
+                  <span className="flex items-center gap-2">
+                    <ChevronUp className="w-4 h-4" /> Show less
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <ChevronDown className="w-4 h-4" /> Show more
+                  </span>
+                )}
               </Button>
-            </div>
+            </motion.div>
 
             {/* Comments Section - Mobile optimized */}
             <div className="mt-6">
