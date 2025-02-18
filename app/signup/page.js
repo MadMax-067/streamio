@@ -37,7 +37,7 @@ export default function SignUpPage() {
         e.preventDefault()
         e.stopPropagation()
         setIsDragging(false)
-        
+
         const file = e.dataTransfer.files[0]
         handleAvatarFile(file)
     }
@@ -51,7 +51,7 @@ export default function SignUpPage() {
                 }
             }
             handleChange(fakeEvent)
-            
+
             const reader = new FileReader()
             reader.onloadend = () => {
                 setAvatarPreview(reader.result)
@@ -103,13 +103,42 @@ export default function SignUpPage() {
                 }
             })
 
-            const response = await axios.post('/api/users/register', data)
+            backendData.setIsLoading(true) // Show loading state
+
+            const response = await axios.post('/api/users/register', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            })
+            var resp = response;
+            // Log the full response for debugging
+            console.log('Registration response:', response.data)
+
             if (response.data.success) {
                 toast.success('Account created successfully')
                 router.push(`/signup/verification-sent?email=${encodeURIComponent(formData.email)}`)
+            } else {
+                // Handle non-error but unsuccessful responses
+                console.log(response.data);
+                toast.error(response.data.message || 'Registration failed')
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Registration failed')
+            // Detailed error logging
+            console.error('Registration error:', error)
+
+            // More specific error messages
+            if (error.response) {
+                // Server responded with error
+                toast.error(error.response.data.message || 'Registration failed')
+            } else if (error.request) {
+                // Request made but no response
+                toast.error('No response from server. Please try again.')
+            } else {
+                // Error in request setup
+                toast.error('Error creating account. Please try again.')
+            }
+        } finally {
+            backendData.setIsLoading(false) // Reset loading state
         }
     }
 
@@ -141,8 +170,8 @@ export default function SignUpPage() {
                                     onDragOver={handleDrag}
                                     onDrop={handleDrop}
                                     className={`relative w-32 h-32 mx-auto rounded-full border-2 border-dashed transition-colors overflow-hidden
-                                        ${isDragging 
-                                            ? 'border-blue-500 bg-blue-500/10' 
+                                        ${isDragging
+                                            ? 'border-blue-500 bg-blue-500/10'
                                             : 'border-gray-600 hover:border-gray-500'}`}
                                 >
                                     {avatarPreview ? (

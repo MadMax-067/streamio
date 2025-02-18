@@ -114,8 +114,8 @@ const VideoCard = ({
   avatar, 
   duration, 
   channelUsername,
-  isOwner = false, // New prop to check if user owns the video
-  isPublished = true // New prop for publish status
+  isOwner = false, 
+  isPublished = true 
 }) => {
   const router = useRouter()
 

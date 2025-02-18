@@ -9,8 +9,10 @@ import { BackendContext } from './Providers';
 import { useRouter } from 'next/navigation'
 import { prefetchAndNavigate } from '@/utils/navigation'
 import { User, Settings, LogOut } from 'lucide-react'
+import { Space_Grotesk } from 'next/font/google'
 
 const mercenary = localFont({ src: '../fonts/mercenaryBold.otf' });
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 const Navbar = ({ setIsRegistering, setIsLogging }) => {
     const backendData = useContext(BackendContext);
@@ -62,9 +64,9 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="flex items-center gap-2 hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                            className="flex items-center gap-2 hover:bg-gray-800 rounded-lg p-2 transition-colors group"
                         >
-                            <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-gray-700 group-hover:ring-gray-600 transition-colors">
                                 <Image
                                     src={backendData.userData?.avatar || '/default-avatar.png'}
                                     alt="Profile"
@@ -72,7 +74,9 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                     className="object-cover"
                                 />
                             </div>
-                            <span className="hidden md:block">{backendData.userData?.username}</span>
+                            <span className={`hidden md:block ${spaceGrotesk.className} font-medium text-gray-200 group-hover:text-white transition-colors`}>
+                                {backendData.userData?.username}
+                            </span>
                         </button>
 
                         {isDropdownOpen && (
@@ -81,20 +85,23 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                     href={`/profile/${backendData.userData?.username}`}
                                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
                                 >
-                                    Profile
+                                    <User className="w-4 h-4" />
+                                    <span className={spaceGrotesk.className}>Profile</span>
                                 </Link>
                                 <Link
                                     href="/settings"
                                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
                                 >
-                                    Settings
+                                    <Settings className="w-4 h-4" />
+                                    <span className={spaceGrotesk.className}>Settings</span>
                                 </Link>
                                 <div className="border-t border-gray-700 my-1" />
                                 <button
                                     onClick={backendData.logoutHandle}
                                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700/50 transition-colors"
                                 >
-                                    Logout
+                                    <LogOut className="w-4 h-4" />
+                                    <span className={spaceGrotesk.className}>Logout</span>
                                 </button>
                             </div>
                         )}

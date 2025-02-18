@@ -5,11 +5,13 @@ import Link from 'next/link'
 import { BackendContext } from '@/components/Providers'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import axios from 'axios'
 
 export default function LoginPage() {
     const router = useRouter()
     const backendData = useContext(BackendContext)
+    const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
         email: '',
         username: '',
@@ -26,10 +28,15 @@ export default function LoginPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        
+        // Form validation
         if (!formData.password || (!formData.email && !formData.username)) {
             toast.error('Please provide either email or username, and password')
             return
         }
+
+        setIsLoading(true)
+        backendData.setIsLoading(true)
 
         try {
             const response = await axios.post('/api/users/login', formData, {
@@ -42,18 +49,30 @@ export default function LoginPage() {
                 backendData.setIsLoggedIn(true)
                 backendData.setMessage('Login successful')
                 
-                toast.success('Logged in successfully')
+                toast.success('Welcome back!')
                 router.push('/')
                 router.refresh()
             } else {
-                backendData.setIsLoggedIn(false)
-                backendData.setMessage(response.data.message)
-                toast.error(response.data.message)
+                throw new Error(response.data.message || 'Login failed')
             }
         } catch (error) {
             backendData.setIsLoggedIn(false)
-            backendData.setMessage(error.response?.data?.message || 'Login failed')
-            toast.error(error.response?.data?.message || 'Login failed')
+            backendData.setMessage(error.response?.data?.message || error.message)
+            
+            // More specific error messages
+            if (error.response?.status === 401) {
+                toast.error('Invalid username/email or password')
+            } else if (error.response?.status === 403) {
+                toast.error('Please verify your email first')
+                router.push(`/signup/verification-sent?email=${encodeURIComponent(formData.email)}`)
+            } else if (!error.response) {
+                toast.error('Network error. Please check your connection.')
+            } else {
+                toast.error(error.response?.data?.message || 'Login failed')
+            }
+        } finally {
+            setIsLoading(false)
+            backendData.setIsLoading(false)
         }
     }
 
@@ -128,10 +147,17 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={backendData.isLoading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isLoading}
+                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative"
                         >
-                            {backendData.isLoading ? 'Logging in...' : 'Login'}
+                            {isLoading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Logging in...
+                                </span>
+                            ) : (
+                                'Login'
+                            )}
                         </button>
                     </form>
 
