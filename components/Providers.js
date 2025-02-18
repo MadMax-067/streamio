@@ -2,6 +2,7 @@
 import React, { useEffect, createContext, useState, useRef, use } from 'react'
 import axios from 'axios';
 import Navbar from './Navbar';
+import { useRouter } from 'next/navigation';
 
 export const BackendContext = createContext();
 
@@ -64,7 +65,7 @@ export default function Providers({ children }) {
         avatar: null
     });
     const [isAuthChecking, setIsAuthChecking] = useState(true);
-
+    const router = useRouter();
 
     const checkAuth = async () => {
         try {
@@ -72,35 +73,35 @@ export default function Providers({ children }) {
             const { data } = await axios.get('/api/users/current-user', {
                 withCredentials: true
             });
-            
+
             if (data.success) {
                 setIsLoggedIn(true);
                 setUserData(data.data);
                 return;
             }
-            
+
             // If that fails with 401, try to refresh the token
             const refreshResponse = await axios.post('/api/users/refresh-token', {}, {
                 withCredentials: true
             });
-            
+
             if (refreshResponse.data.success) {
                 // Try getting user data again with new token
                 const newUserResponse = await axios.get('/api/users/current-user', {
                     withCredentials: true
                 });
-                
+
                 if (newUserResponse.data.success) {
                     setIsLoggedIn(true);
                     setUserData(newUserResponse.data.data);
                     return;
                 }
             }
-            
+
             // If all attempts fail, ensure user is logged out
             setIsLoggedIn(false);
             setUserData(null);
-            
+
         } catch (error) {
             console.error('Auth check failed:', error);
             setIsLoggedIn(false);
@@ -109,21 +110,21 @@ export default function Providers({ children }) {
             setIsAuthChecking(false);
         }
     };
-    
+
     // Use it in useEffect with proper cleanup
     useEffect(() => {
         let mounted = true;
-    
+
         const performAuthCheck = async () => {
             if (!mounted) return;
             await checkAuth();
         };
-    
+
         performAuthCheck();
-    
+
         // Optional: Set up periodic token refresh
         const refreshInterval = setInterval(performAuthCheck, 1000 * 60 * 60); // Check every hour
-    
+
         return () => {
             mounted = false;
             clearInterval(refreshInterval);
@@ -251,6 +252,7 @@ export default function Providers({ children }) {
                 withCredentials: true
             });
             if (data.success) {
+                router.push('/welcome')
                 setIsLoggedIn(false);
                 setUserData(null);
             } else {
@@ -288,7 +290,7 @@ export default function Providers({ children }) {
     }, []);
 
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLoggedIn,setUserData,setMessage, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed,setIsLoading, isAuthChecking }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLoggedIn, setUserData, setMessage, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed, setIsLoading, isAuthChecking }}>
             <Navbar />
             {children}
         </BackendContext.Provider>
