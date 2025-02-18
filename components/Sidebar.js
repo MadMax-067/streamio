@@ -21,7 +21,7 @@ const Sidebar = () => {
 
     return (
         <motion.aside 
-            className={`${spaceGrotesk.className} sidebar flex flex-col py-4 justify-between h-[90.75vh] bg-gray-900/50 backdrop-blur-sm border-r border-gray-800/50`}
+            className={`${spaceGrotesk.className} sidebar flex flex-col py-4 justify-between h-[90.75vh] backdrop-blur-sm border-r border-gray-800/50`}
             animate={{ 
                 width: isCollapsed ? '4rem' : '15.625vw',
                 transition: { duration: 0.3, ease: 'easeInOut' }

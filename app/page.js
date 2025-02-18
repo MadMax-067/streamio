@@ -13,12 +13,13 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
+    // Handle all navigation in one place
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
       router.replace('/welcome')
     }
   }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-  // Show loading state while checking auth
+  // Show loading while checking auth
   if (backendData.isAuthChecking) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
@@ -27,13 +28,22 @@ export default function Home() {
     )
   }
 
-  // Redirect if not logged in
+  // If not logged in, show loading while redirecting
   if (!backendData.isLoggedIn) {
-    return null
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <Loading />
+      </div>
+    )
   }
 
+  // If we reach here, user is logged in
   return (
-    <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>
+    <Suspense fallback={
+      <div className='min-h-screen flex items-center justify-center'>
+        <Loading />
+      </div>
+    }>
       <Main BACKEND_API={process.env.BACKEND_API} />
     </Suspense>
   )

@@ -7,13 +7,18 @@ import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from "framer-motion"
 import SignUp from '@/components/SignUp'
 import Login from '@/components/Login'
-import { Upload, X } from 'lucide-react'
+import { Upload, X, Users, Video } from 'lucide-react'
 import BottomBar from '@/components/BottomBar'
 import Image from 'next/image'
 import Loading from '@/components/Loading'
 import AuthCheck from '@/components/AuthCheck'
 import VideoUpload from '@/components/VideoUpload'
 import { useRouter } from 'next/navigation'
+import { Space_Grotesk } from 'next/font/google'
+import localFont from 'next/font/local'
+
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+const mercenary = localFont({ src: '../../../fonts/mercenaryBold.otf' })
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
@@ -102,12 +107,13 @@ export default function ProfilePage({ params }) {
   }
 
   useEffect(() => {
+    // Handle all navigation in one place
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
       router.replace('/welcome')
     }
   }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-  // Show loading state while checking auth
+  // Show loading while checking auth
   if (backendData.isAuthChecking) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
@@ -116,14 +122,10 @@ export default function ProfilePage({ params }) {
     )
   }
 
-  // Redirect if not logged in
+  // If not logged in, show loading while redirecting
   if (!backendData.isLoggedIn) {
-    return null
-  }
-
-  if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className='min-h-screen flex items-center justify-center'>
         <Loading />
       </div>
     )
@@ -153,9 +155,13 @@ export default function ProfilePage({ params }) {
         </div>
 
         {/* Profile Info */}
-        <div className="px-4 md:px-8 -mt-16 relative">
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-accent bg-gray-800">
+        <div className={`px-4 md:px-8 -mt-16 relative ${spaceGrotesk.className}`}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row items-center md:items-end gap-6"
+          >
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-accent bg-gray-800 shadow-xl">
               <Image
                 src={profileData?.avatar || "/placeholder.svg"}
                 alt={profileData?.username}
@@ -165,25 +171,34 @@ export default function ProfilePage({ params }) {
               />
             </div>
             <div className="flex flex-col items-center md:items-start">
-              <h1 className="text-2xl md:text-3xl font-bold">{profileData?.fullName}</h1>
-              <p className="text-gray-400">@{profileData?.username}</p>
-              <div className="flex gap-4 mt-2 text-sm text-gray-400">
-                <span>{profileData?.subscribersCount} subscribers</span>
-                <span>{profileData?.publishedVideos?.length} videos</span>
+              <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+                {profileData?.fullName}
+              </h1>
+              <p className="text-blue-400 text-lg">@{profileData?.username}</p>
+              <div className="flex gap-6 mt-3 text-base text-gray-400">
+                <span className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  {profileData?.subscribersCount} subscribers
+                </span>
+                <span className="flex items-center gap-2">
+                  <Video className="w-4 h-4" />
+                  {profileData?.publishedVideos?.length} videos
+                </span>
               </div>
             </div>
             <div className="md:ml-auto">
               <Button
                 onClick={handleSubscribe}
-                className={`${profileData?.isSubscribed
-                  ? "bg-gray-600 hover:bg-gray-700"
-                  : "bg-blue-600 hover:bg-blue-700"
-                  } px-8`}
+                className={`${
+                  profileData?.isSubscribed
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } px-8 py-3 text-lg font-medium rounded-xl transition-all duration-200`}
               >
                 {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
               </Button>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {params.username === backendData?.userData?.username && (

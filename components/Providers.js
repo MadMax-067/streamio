@@ -40,6 +40,7 @@ axios.interceptors.response.use(
 
 
 export default function Providers({ children }) {
+    const [isAuthChecking, setIsAuthChecking] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userData, setUserData] = useState(null);
     const [searchResult, setSearchResults] = useState();
@@ -64,73 +65,49 @@ export default function Providers({ children }) {
         password: '',
         avatar: null
     });
-    const [isAuthChecking, setIsAuthChecking] = useState(true);
     const router = useRouter();
 
     const checkAuth = async () => {
+        console.log('Starting auth check...')
         try {
-            // First try to get current user with existing access token
             const { data } = await axios.get('/api/users/current-user', {
                 withCredentials: true
-            });
+            })
 
+            console.log('Auth response:', data)
             if (data.success) {
-                setIsLoggedIn(true);
-                setUserData(data.data);
-                return;
+                setIsLoggedIn(true)
+                setUserData(data.data)
+            } else {
+                setIsLoggedIn(false)
+                setUserData(null)
             }
-
-            // If that fails with 401, try to refresh the token
-            const refreshResponse = await axios.post('/api/users/refresh-token', {}, {
-                withCredentials: true
-            });
-
-            if (refreshResponse.data.success) {
-                // Try getting user data again with new token
-                const newUserResponse = await axios.get('/api/users/current-user', {
-                    withCredentials: true
-                });
-
-                if (newUserResponse.data.success) {
-                    setIsLoggedIn(true);
-                    setUserData(newUserResponse.data.data);
-                    return;
-                }
-            }
-
-            // If all attempts fail, ensure user is logged out
-            setIsLoggedIn(false);
-            setUserData(null);
-
         } catch (error) {
-            console.error('Auth check failed:', error);
-            setIsLoggedIn(false);
-            setUserData(null);
+            console.error('Auth check failed:', error)
+            setIsLoggedIn(false)
+            setUserData(null)
         } finally {
-            setIsAuthChecking(false);
+            console.log('Auth check complete, setting isAuthChecking to false')
+            setIsAuthChecking(false)
         }
-    };
+    }
 
-    // Use it in useEffect with proper cleanup
     useEffect(() => {
-        let mounted = true;
+        let mounted = true
 
-        const performAuthCheck = async () => {
-            if (!mounted) return;
-            await checkAuth();
-        };
+        const initAuth = async () => {
+            await checkAuth()
+            if (!mounted) return
+        }
 
-        performAuthCheck();
-
-        // Optional: Set up periodic token refresh
-        const refreshInterval = setInterval(performAuthCheck, 1000 * 60 * 60); // Check every hour
+        initAuth()
 
         return () => {
-            mounted = false;
-            clearInterval(refreshInterval);
-        };
-    }, []);
+            mounted = false
+        }
+    }, [])
 
+    console.log('Current auth state:', { isAuthChecking, isLoggedIn })
 
     const handleLoginChange = (e) => {
         setLoginFormData(prevData => ({

@@ -31,6 +31,10 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const handleOptionClick = () => {
+        setIsDropdownOpen(false);
+      };
+
     return (
         <nav className={`${mercenary.className} navbar flex items-center w-full h-[9.25vh]`}>
             <div className='flex w-full items-center mx-4 md:m-0 justify-center md:justify-between md:px-7 2xl:px-10 ' >
@@ -84,6 +88,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                 <Link
                                     href={`/profile/${backendData.userData?.username}`}
                                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
+                                    onClick={handleOptionClick}
                                 >
                                     <User className="w-4 h-4" />
                                     <span className={spaceGrotesk.className}>Profile</span>
@@ -91,6 +96,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                 <Link
                                     href="/settings"
                                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
+                                    onClick={handleOptionClick}
                                 >
                                     <Settings className="w-4 h-4" />
                                     <span className={spaceGrotesk.className}>Settings</span>
@@ -99,6 +105,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                 <button
                                     onClick={backendData.logoutHandle}
                                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700/50 transition-colors"
+                                    onClick={handleOptionClick}
                                 >
                                     <LogOut className="w-4 h-4" />
                                     <span className={spaceGrotesk.className}>Logout</span>

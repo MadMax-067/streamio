@@ -82,12 +82,13 @@ export default function VideoPage({ params }) {
   const [showShareDialog, setShowShareDialog] = useState(false)
 
   useEffect(() => {
+    // Handle all navigation in one place
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
       router.replace('/welcome')
     }
   }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-  // Show loading state while checking auth
+  // Show loading while checking auth
   if (backendData.isAuthChecking) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
@@ -96,9 +97,13 @@ export default function VideoPage({ params }) {
     )
   }
 
-  // Redirect if not logged in
+  // If not logged in, show loading while redirecting
   if (!backendData.isLoggedIn) {
-    return null
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <Loading />
+      </div>
+    )
   }
   
   useEffect(() => {
