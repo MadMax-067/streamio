@@ -29,6 +29,7 @@ import {
   Flag,
   Download,
   PlaySquare,
+  Check,
 } from "lucide-react"
 import {
   Dialog,
@@ -183,11 +184,23 @@ export default function VideoPage({ params }) {
 
   const handleSubscribe = async () => {
     try {
-      await axios.post(`/api/subscriptions/channel/${videoData?.owner?._id}`)
-      const response = await axios.get(`/api/videos/${slug}`)
-      setVideoData(response.data?.data)
+      const response = await axios.post(`/api/subscriptions/channel/${videoData?.owner?._id}`)
+      if (response.data.success) {
+        // Update local state to show immediate feedback
+        setVideoData(prev => ({
+          ...prev,
+          owner: {
+            ...prev.owner,
+            subscribersCount: prev.isSubscribed 
+              ? prev.owner.subscribersCount - 1 
+              : prev.owner.subscribersCount + 1
+          },
+          isSubscribed: !prev.isSubscribed
+        }))
+      }
     } catch (error) {
-      console.error(error)
+      console.error('Subscribe error:', error)
+      toast.error("Failed to subscribe. Please try again.")
     }
   }
 
@@ -455,24 +468,48 @@ export default function VideoPage({ params }) {
 
             {/* Channel info and actions - Stack on mobile */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-4">
-              <Link 
-                href={`/profile/${videoData?.owner?.username}`}
-                className="flex items-center gap-3 hover:bg-gray-800/50 p-2 rounded-lg transition"
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden">
-                  <Image
-                    src={videoData?.owner?.avatar || "/placeholder.svg?height=40&width=40"}
-                    alt={videoData?.owner?.username || "Channel avatar"}
-                    width={40}
-                    height={40}
-                    className="h-10 object-cover"
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{videoData?.owner?.fullName}</h3>
-                  <p className="text-sm text-gray-400">{formatCount(videoData?.owner?.subscribersCount)} subscribers</p>
-                </div>
-              </Link>
+              <div className="flex items-center justify-between gap-3 w-full md:w-auto">
+                <Link 
+                  href={`/profile/${videoData?.owner?.username}`}
+                  className="flex items-center gap-3 hover:bg-gray-800/50 p-2 rounded-lg transition"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <Image
+                      src={videoData?.owner?.avatar || "/placeholder.svg?height=40&width=40"}
+                      alt={videoData?.owner?.username || "Channel avatar"}
+                      width={40}
+                      height={40}
+                      className="h-10 object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{videoData?.owner?.fullName}</h3>
+                    <p className="text-sm text-gray-400">{formatCount(videoData?.owner?.subscribersCount)} subscribers</p>
+                  </div>
+                </Link>
+
+                <Button
+                  onClick={handleSubscribe}
+                  className={`
+                    px-4 py-2 rounded-lg transition-all duration-200 font-medium
+                    ${videoData?.isSubscribed 
+                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300" 
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }
+                  `}
+                >
+                  <span className="flex items-center gap-2">
+                    {videoData?.isSubscribed ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Subscribed
+                      </>
+                    ) : (
+                      'Subscribe'
+                    )}
+                  </span>
+                </Button>
+              </div>
 
               {/* Action buttons - Horizontal scroll on mobile */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
