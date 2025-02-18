@@ -480,7 +480,7 @@ export default function VideoPage({ params }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`flex items-center gap-2 rounded-full px-4 ${isLiked ? "text-blue-500" : ""}`}
+                    className={`flex items-center gap-2 rounded-full px-4 hover:bg-gray-700 ${isLiked ? "text-blue-500" : ""}`}
                     onClick={handleLike}
                   >
                     <ThumbsUp className="w-5 h-5" />
@@ -575,7 +575,7 @@ export default function VideoPage({ params }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-3 text-gray-400 hover:text-white transition-colors"
+                className="mt-3 text-gray-400 hover:text-white hover:bg-gray-700"
                 onClick={() => setShowFullDescription(!showFullDescription)}
               >
                 {showFullDescription ? (
@@ -615,7 +615,7 @@ export default function VideoPage({ params }) {
                     className="min-h-[60px] bg-gray-800 border-none focus:ring-1 focus:ring-blue-500 w-full"
                   />
                   <div className="flex justify-end gap-2 mt-2">
-                    <Button type="button" variant="ghost" onClick={() => setNewComment("")}>
+                    <Button type="button" variant="ghost" className="hover:bg-gray-700" onClick={() => setNewComment("")}>
                       Cancel
                     </Button>
                     <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={!newComment.trim()}>
@@ -661,7 +661,7 @@ export default function VideoPage({ params }) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`flex items-center gap-1 ${comment.isLiked ? "text-blue-500" : ""}`}
+                            className={`flex items-center gap-1 hover:bg-gray-700 ${comment.isLiked ? "text-blue-500" : ""}`}
                             onClick={() => handleCommentLike(comment._id)}
                           >
                             <ThumbsUp className="w-4 h-4" />
@@ -709,6 +709,7 @@ export default function VideoPage({ params }) {
               <Button
                 type="button"
                 variant="ghost"
+                className="hover:bg-gray-700"
                 onClick={() => setShowCreatePlaylist(false)}
               >
                 Cancel
