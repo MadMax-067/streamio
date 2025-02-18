@@ -17,12 +17,12 @@ const Main = (props) => {
     const router = useRouter()
 
     useEffect(() => {
-        if (!backendData.isLoggedIn) {
-            router.push('/welcome')
+        if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
+          router.push('/welcome')
         }
-    }, [backendData.isLoggedIn, router])
+      }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
     
-    if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
+      if (backendData.isAuthChecking || !backendData.isLoggedIn) return <div className='min-h-screen'></div>;
 
     return (
         <Suspense fallback={<div className='min-h-screen flex items-center justify-center'><Loading /></div>}>

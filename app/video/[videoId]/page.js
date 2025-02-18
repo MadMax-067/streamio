@@ -82,12 +82,12 @@ export default function VideoPage({ params }) {
   const [showShareDialog, setShowShareDialog] = useState(false)
 
   useEffect(() => {
-    if (!backendData.isLoggedIn) {
-        router.push('/welcome')
+    if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
+      router.push('/welcome')
     }
-}, [backendData.isLoggedIn, router])
+  }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
+  if (backendData.isAuthChecking || !backendData.isLoggedIn) return <div className='min-h-screen'></div>;
   
   useEffect(() => {
     const fetchVideoData = async () => {

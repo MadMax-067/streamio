@@ -17,15 +17,14 @@ import { useRouter } from 'next/navigation'
 
 const VideoCard = lazy(() => import('@/components/VideoCard'))
 
-export default function ProfilePage() {
+export default function ProfilePage({ params }) {
   const backendData = useContext(BackendContext)
   const [profileData, setProfileData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const params = useParams()
   const router = useRouter()
 
- 
+
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -103,12 +102,12 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    if (!backendData.isLoggedIn) {
-        router.push('/welcome')
+    if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
+      router.push('/welcome')
     }
-}, [backendData.isLoggedIn, router])
+  }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
+  if (backendData.isAuthChecking || !backendData.isLoggedIn) return <div className='min-h-screen'></div>;
 
   if (isLoading) {
     return (
@@ -206,7 +205,7 @@ if (!backendData.isLoggedIn) return <div className='min-h-screen'></div>
                     thumbnail={video.thumbnail}
                     channelName={profileData.fullName}
                     channelUsername={profileData.username}
-                    views={video.views || 0} 
+                    views={video.views || 0}
                     avatar={profileData.avatar}
                     duration={video.duration}
                     createdAt={video.createdAt}

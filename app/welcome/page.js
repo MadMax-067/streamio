@@ -2,7 +2,7 @@
 import { useContext, useEffect } from 'react'
 import { BackendContext } from '@/components/Providers'
 import { useRouter } from 'next/navigation'
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -12,30 +12,41 @@ export default function WelcomePage() {
     
     const mouseX = useMotionValue(0)
     const mouseY = useMotionValue(0)
-    const rotateX = useTransform(mouseY, [-300, 300], [10, -10])
-    const rotateY = useTransform(mouseX, [-300, 300], [-10, 10])
+    
+    // Add spring physics for smoother movement
+    const springConfig = { damping: 20, stiffness: 300 }
+    const rotateX = useSpring(
+        useTransform(mouseY, [-300, 300], [15, -15]),
+        springConfig
+    )
+    const rotateY = useSpring(
+        useTransform(mouseX, [-300, 300], [-15, 15]),
+        springConfig
+    )
 
     const handleMouseMove = (event) => {
-        const rect = event.currentTarget.getBoundingClientRect()
-        const centerX = rect.left + rect.width / 2
-        const centerY = rect.top + rect.height / 2
+        const { currentTarget, clientX, clientY } = event
+        const { left, top, width, height } = currentTarget.getBoundingClientRect()
         
-        animate(mouseX, event.clientX - centerX)
-        animate(mouseY, event.clientY - centerY)
+        const centerX = left + width / 2
+        const centerY = top + height / 2
+        
+        mouseX.set(clientX - centerX)
+        mouseY.set(clientY - centerY)
     }
 
     const handleMouseLeave = () => {
-        animate(mouseX, 0)
-        animate(mouseY, 0)
+        mouseX.set(0)
+        mouseY.set(0)
     }
     
     useEffect(() => {
-        if (backendData.isLoggedIn) {
+        if (!backendData.isAuthChecking && backendData.isLoggedIn) {
             router.push('/')
         }
-    }, [backendData.isLoggedIn, router])
+    }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-    if (backendData.isLoggedIn) return null
+    if (backendData.isAuthChecking || backendData.isLoggedIn) return null
     
     return (
         <div className="min-h-screen flex flex-col">
@@ -78,7 +89,8 @@ export default function WelcomePage() {
                         style={{
                             rotateX,
                             rotateY,
-                            transformStyle: "preserve-3d"
+                            transformStyle: "preserve-3d",
+                            transition: "transform 0.1s ease"
                         }}
                     >
                         <motion.div

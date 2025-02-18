@@ -63,6 +63,7 @@ export default function Providers({ children }) {
         password: '',
         avatar: null
     });
+    const [isAuthChecking, setIsAuthChecking] = useState(true);
 
 
     const checkAuth = async () => {
@@ -104,6 +105,8 @@ export default function Providers({ children }) {
             console.error('Auth check failed:', error);
             setIsLoggedIn(false);
             setUserData(null);
+        } finally {
+            setIsAuthChecking(false);
         }
     };
     
@@ -285,7 +288,7 @@ export default function Providers({ children }) {
     }, []);
 
     return (
-        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLoggedIn,setUserData,setMessage, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed,setIsLoading }}>
+        <BackendContext.Provider value={{ isLoggedIn, userData, logoutHandle, searchValue, formSubmit, handleSearchChange, setIsLoggedIn,setUserData,setMessage, isLogging, isRegistering, setIsLogging, setIsRegistering, loginFormData, setLoginFormData, handleLoginSubmit, handleLoginChange, handleSignupChange, handleSignupSubmit, signupFormData, isLoading, message, onLoginClick, onSignupClick, homeLoading, homeMessage, isMobile, isSearching, setIsSearching, homeFeed,setIsLoading, isAuthChecking }}>
             <Navbar />
             {children}
         </BackendContext.Provider>
