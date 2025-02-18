@@ -83,11 +83,23 @@ export default function VideoPage({ params }) {
 
   useEffect(() => {
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
-      router.push('/welcome')
+      router.replace('/welcome')
     }
   }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-  if (backendData.isAuthChecking || !backendData.isLoggedIn) return <div className='min-h-screen'></div>;
+  // Show loading state while checking auth
+  if (backendData.isAuthChecking) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <Loading />
+      </div>
+    )
+  }
+
+  // Redirect if not logged in
+  if (!backendData.isLoggedIn) {
+    return null
+  }
   
   useEffect(() => {
     const fetchVideoData = async () => {

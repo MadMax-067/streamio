@@ -13,7 +13,6 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    // Only redirect if we're sure the user is not logged in
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
       router.replace('/welcome')
     }
