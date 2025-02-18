@@ -39,7 +39,7 @@ export default function WelcomePage() {
     
     return (
         <div className="min-h-screen flex flex-col">
-            <div className="flex-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-8 bg-gradient-to-b from-gray-900 to-gray-800">
+            <div className="flex-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-8">
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
