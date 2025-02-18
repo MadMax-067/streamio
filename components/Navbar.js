@@ -102,7 +102,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                                     className="object-cover"
                                                 />
                                             </div>
-                                            <div>
+                                            <div className={spaceGrotesk.className}>
                                                 <p className="font-medium text-gray-200">{backendData.userData?.fullName}</p>
                                                 <p className="text-sm text-gray-400">@{backendData.userData?.username}</p>
                                             </div>
