@@ -145,23 +145,27 @@ export default function ProfilePage({ params }) {
         {/* Cover Image */}
         <div className="h-32 md:h-48 bg-gray-800 relative">
           {profileData?.coverImage && (
-            <Image
-              src={profileData.coverImage}
-              alt="Cover"
-              fill
-              className="object-cover"
-            />
+            <>
+              <Image
+                src={profileData.coverImage}
+                alt="Cover"
+                fill
+                className="object-cover"
+              />
+              {/* Add a gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
+            </>
           )}
         </div>
 
         {/* Profile Info */}
-        <div className={`px-4 md:px-8 -mt-16 relative ${spaceGrotesk.className}`}>
+        <div className={`px-4 md:px-8 -mt-16 relative z-10 ${spaceGrotesk.className}`}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center md:items-end gap-6"
           >
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-accent bg-gray-800 shadow-xl">
+            <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-gray-900 bg-gray-800 shadow-xl">
               <Image
                 src={profileData?.avatar || "/placeholder.svg"}
                 alt={profileData?.username}
@@ -170,7 +174,8 @@ export default function ProfilePage({ params }) {
                 className="object-cover"
               />
             </div>
-            <div className="flex flex-col items-center md:items-start">
+            {/* Add a background to the text container for better visibility */}
+            <div className="flex flex-col items-center md:items-start p-4 rounded-lg bg-gray-900/50 backdrop-blur-sm">
               <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
                 {profileData?.fullName}
               </h1>
@@ -185,18 +190,6 @@ export default function ProfilePage({ params }) {
                   {profileData?.publishedVideos?.length} videos
                 </span>
               </div>
-            </div>
-            <div className="md:ml-auto">
-              <Button
-                onClick={handleSubscribe}
-                className={`${
-                  profileData?.isSubscribed
-                    ? "bg-gray-800 hover:bg-gray-700"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } px-8 py-3 text-lg font-medium rounded-xl transition-all duration-200`}
-              >
-                {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
-              </Button>
             </div>
           </motion.div>
         </div>
