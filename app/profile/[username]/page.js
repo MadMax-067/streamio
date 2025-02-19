@@ -163,50 +163,53 @@ export default function ProfilePage({ params }) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row items-center md:items-end gap-6"
+            className="flex flex-col md:flex-row items-center md:items-end md:justify-between gap-6"
           >
-            <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-gray-900 bg-gray-800 shadow-xl">
-              <Image
-                src={profileData?.avatar || "/placeholder.svg"}
-                alt={profileData?.username}
-                width={128}
-                height={128}
-                className="object-cover"
-              />
-            </div>
-            {/* Add a background to the text container for better visibility */}
-            <div className="flex flex-col items-center md:items-start">
-              <div className="p-4 rounded-lg bg-gray-900/50 backdrop-blur-sm">
-                <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
-                  {profileData?.fullName}
-                </h1>
-                <p className="text-blue-400 text-lg">@{profileData?.username}</p>
-                <div className="flex gap-6 mt-3 text-base text-gray-400">
-                  <span className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    {profileData?.subscribersCount} subscribers
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Video className="w-4 h-4" />
-                    {profileData?.publishedVideos?.length} videos
-                  </span>
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+              <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-gray-900 bg-gray-800 shadow-xl">
+                <Image
+                  src={profileData?.avatar || "/placeholder.svg"}
+                  alt={profileData?.username}
+                  width={128}
+                  height={128}
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex flex-col items-center md:items-start">
+                <div className="p-4 rounded-lg bg-gray-900/50 backdrop-blur-sm">
+                  <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+                    {profileData?.fullName}
+                  </h1>
+                  <p className="text-blue-400 text-lg">@{profileData?.username}</p>
+                  <div className="flex gap-6 mt-3 text-base text-gray-400">
+                    <span className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {profileData?.subscribersCount} subscribers
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      {profileData?.publishedVideos?.length} videos
+                    </span>
+                  </div>
                 </div>
               </div>
-              
-              {/* Add Subscribe Button if not own profile */}
-              {params.username !== backendData?.userData?.username && (
-                <Button
-                  onClick={handleSubscribe}
-                  className={`mt-4 px-8 py-2 rounded-lg transition-all duration-200 font-medium ${
-                    profileData?.isSubscribed
-                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
-                </Button>
-              )}
             </div>
+
+            {/* Subscribe Button moved to right */}
+            {params.username !== backendData?.userData?.username && (
+              <Button
+                onClick={handleSubscribe}
+                className={`md:self-center px-8 py-2 rounded-lg transition-all duration-200 font-medium ${
+                  profileData?.isSubscribed
+                    ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
+                </span>
+              </Button>
+            )}
           </motion.div>
         </div>
 
