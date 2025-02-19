@@ -53,12 +53,12 @@ export default function LoginPage() {
                 router.push('/')
                 router.refresh()
             }
-            if (response?.status === 401) {
+            if (response.status === 401) {
                 toast.error('Invalid username/email or password')
                 setIsLoading(false)
                 backendData.setIsLoading(false)
             }
-            if (response?.status === 403) {
+            if (response.status === 403) {
                 setIsLoading(false)
                 backendData.setIsLoading(false)
                 toast.error('Please verify your email first')
