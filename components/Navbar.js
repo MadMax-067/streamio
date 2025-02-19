@@ -91,6 +91,7 @@ const Navbar = ({ setIsRegistering, setIsLogging }) => {
                                 <Link 
                                     href={`/profile/${backendData.userData?.username}`}
                                     className="block hover:bg-gray-700/50 transition-colors"
+                                    onClick={handleOptionClick}
                                 >
                                     <div className="p-4 border-b border-gray-700/50">
                                         <div className="flex items-center gap-3">

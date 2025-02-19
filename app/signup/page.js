@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { ImageIcon, X } from 'lucide-react'
 import Image from 'next/image'
 import axios from 'axios'
+import PasswordRequirements from '@/components/PasswordRequirements'
 
 export default function SignUpPage() {
     const router = useRouter()
@@ -85,6 +86,15 @@ export default function SignUpPage() {
         }
     }
 
+    const validatePassword = (password) => {
+        const hasLength = password.length >= 8
+        const hasUpper = /[A-Z]/.test(password)
+        const hasLower = /[a-z]/.test(password)
+        const hasNumber = /\d/.test(password)
+        const hasSpecial = /[@$!%*?&]/.test(password)
+        return hasLength && hasUpper && hasLower && hasNumber && hasSpecial
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         const requiredFields = ['fullName', 'email', 'username', 'password']
@@ -93,6 +103,11 @@ export default function SignUpPage() {
                 toast.error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`)
                 return
             }
+        }
+
+        if (!validatePassword(formData.password)) {
+            toast.error('Password does not meet requirements')
+            return
         }
 
         try {
@@ -110,16 +125,12 @@ export default function SignUpPage() {
                     'Content-Type': 'multipart/form-data',
                 }
             })
-            var resp = response;
-            // Log the full response for debugging
-            console.log('Registration response:', response.data)
+            
 
             if (response.data.success) {
                 toast.success('Account created successfully')
                 router.push(`/signup/verification-sent?email=${encodeURIComponent(formData.email)}`)
             } else {
-                // Handle non-error but unsuccessful responses
-                console.log(response.data);
                 toast.error(response.data.message || 'Registration failed')
             }
         } catch (error) {
@@ -282,11 +293,15 @@ export default function SignUpPage() {
                                     value={formData.password}
                                     onChange={handleChange}
                                 />
+                                <div className="mt-2 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                                    <h3 className="text-sm font-medium mb-2 text-gray-300">Password Requirements:</h3>
+                                    <PasswordRequirements password={formData.password} />
+                                </div>
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={backendData.isLoading}
+                                disabled={backendData.isLoading || !validatePassword(formData.password)}
                                 className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {backendData.isLoading ? 'Creating account...' : 'Sign up'}

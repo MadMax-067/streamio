@@ -90,13 +90,11 @@ export default function Providers({ children }) {
 
     const checkAuth = useRef(
         debounce(async () => {
-            console.log('Starting auth check...')
             try {
                 const { data } = await axios.get('/api/users/current-user', {
                     withCredentials: true
                 })
 
-                console.log('Auth response:', data)
                 if (data.success) {
                     setIsLoggedIn(true)
                     setUserData(data.data)
@@ -132,7 +130,6 @@ export default function Providers({ children }) {
         };
     }, [checkAuth]);
 
-    console.log('Current auth state:', { isAuthChecking, isLoggedIn })
 
     const handleLoginChange = (e) => {
         setLoginFormData(prevData => ({
