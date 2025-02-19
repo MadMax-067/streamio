@@ -175,21 +175,37 @@ export default function ProfilePage({ params }) {
               />
             </div>
             {/* Add a background to the text container for better visibility */}
-            <div className="flex flex-col items-center md:items-start p-4 rounded-lg bg-gray-900/50 backdrop-blur-sm">
-              <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
-                {profileData?.fullName}
-              </h1>
-              <p className="text-blue-400 text-lg">@{profileData?.username}</p>
-              <div className="flex gap-6 mt-3 text-base text-gray-400">
-                <span className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  {profileData?.subscribersCount} subscribers
-                </span>
-                <span className="flex items-center gap-2">
-                  <Video className="w-4 h-4" />
-                  {profileData?.publishedVideos?.length} videos
-                </span>
+            <div className="flex flex-col items-center md:items-start">
+              <div className="p-4 rounded-lg bg-gray-900/50 backdrop-blur-sm">
+                <h1 className={`${mercenary.className} text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+                  {profileData?.fullName}
+                </h1>
+                <p className="text-blue-400 text-lg">@{profileData?.username}</p>
+                <div className="flex gap-6 mt-3 text-base text-gray-400">
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    {profileData?.subscribersCount} subscribers
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Video className="w-4 h-4" />
+                    {profileData?.publishedVideos?.length} videos
+                  </span>
+                </div>
               </div>
+              
+              {/* Add Subscribe Button if not own profile */}
+              {params.username !== backendData?.userData?.username && (
+                <Button
+                  onClick={handleSubscribe}
+                  className={`mt-4 px-8 py-2 rounded-lg transition-all duration-200 font-medium ${
+                    profileData?.isSubscribed
+                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
+                >
+                  {profileData?.isSubscribed ? "Subscribed" : "Subscribe"}
+                </Button>
+              )}
             </div>
           </motion.div>
         </div>

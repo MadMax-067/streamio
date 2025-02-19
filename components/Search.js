@@ -77,17 +77,25 @@ const Search = () => {
                     </button>
                 )
             ) : (
-                <div className='searchbar hidden md:flex items-center border border-secondary/30 rounded-[2rem] w-[45vw] md:h-12 2xl:h-16'>
+                <div className='searchbar hidden md:flex items-center bg-gray-800/30 border border-gray-700/30 rounded-xl w-[45vw] md:h-12 2xl:h-14 backdrop-blur-sm transition-all duration-200 hover:bg-gray-800/50 hover:border-gray-700/50 focus-within:bg-gray-800/50 focus-within:border-blue-500/50'>
                     <form className='w-full flex justify-between items-center' onSubmit={handleSubmit}>
                         <input 
                             type="text" 
                             value={searchValue} 
                             onChange={handleSearchChange} 
-                            placeholder='Search' 
-                            className='outline-none placeholder:opacity-30 text-secondary/50 px-8 text-xl bg-transparent w-full' 
+                            placeholder='Search videos...' 
+                            className='outline-none text-gray-200 placeholder:text-gray-400 px-6 text-base bg-transparent w-full' 
                         />
-                        <button className='md:px-4 2xl:px-5'>
-                            <SearchIcon />
+                        <button 
+                            type="submit"
+                            className='px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors'
+                            disabled={isNavigating}
+                        >
+                            {isNavigating ? (
+                                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <SearchIcon className="w-5 h-5" />
+                            )}
                         </button>
                     </form>
                 </div>
