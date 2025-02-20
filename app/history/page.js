@@ -18,7 +18,7 @@ import { BackendContext } from '@/components/Providers'
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 // Create a VideoCard component to reduce complexity
-const VideoCard = ({ video, index }) => {
+const VideoCard = ({ video, index, onDelete }) => {
   const formatDuration = (duration) => {
     const minutes = Math.floor(duration / 60)
     const seconds = Math.floor(duration % 60)
@@ -37,50 +37,63 @@ const VideoCard = ({ video, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700/50 hover:border-gray-600/50 transition-all"
+      className="bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700/50 hover:border-gray-600/50 transition-all group"
     >
-      <Link href={`/video/${video._id}`}>
-        <div className="relative aspect-video">
-          <Image
-            src={video.thumbnail}
-            alt={video.title}
-            fill
-            className="object-cover"
-          />
-          <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs">
-            {formatDuration(video.duration)}
+      <div className="relative">
+        <Link href={`/video/${video._id}`}>
+          <div className="relative aspect-video">
+            <Image
+              src={video.thumbnail}
+              alt={video.title}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs">
+              {formatDuration(video.duration)}
+            </div>
           </div>
-        </div>
-        <div className="p-4">
-          <div className="flex gap-3">
-            <Link href={`/profile/${video.owner.username}`}>
-              <Image
-                src={video.owner.avatar}
-                alt={video.owner.fullName}
-                width={40}
-                height={40}
-                className="rounded-full h-10 w-10 object-cover"
-              />
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete(video._id);
+          }}
+        >
+          <Trash2 className="w-4 h-4 text-red-400 hover:text-red-500" />
+        </Button>
+      </div>
+      <div className="p-4">
+        <div className="flex gap-3">
+          <Link href={`/profile/${video.owner.username}`}>
+            <Image
+              src={video.owner.avatar}
+              alt={video.owner.fullName}
+              width={40}
+              height={40}
+              className="rounded-full h-10 w-10 object-cover"
+            />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-base mb-1 line-clamp-2">
+              {video.title}
+            </h3>
+            <Link 
+              href={`/profile/${video.owner.username}`}
+              className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+            >
+              {video.owner.fullName}
             </Link>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-base mb-1 line-clamp-2">
-                {video.title}
-              </h3>
-              <Link 
-                href={`/profile/${video.owner.username}`}
-                className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
-              >
-                {video.owner.fullName}
-              </Link>
-              <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                <span>{formatViews(video.views)} views</span>
-                <span>•</span>
-                <span>{formatDistanceToNow(new Date(video.createdAt))} ago</span>
-              </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+              <span>{formatViews(video.views)} views</span>
+              <span>•</span>
+              <span>{formatDistanceToNow(new Date(video.createdAt))} ago</span>
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }
@@ -112,12 +125,24 @@ export default function HistoryPage() {
   }
 
   const clearHistory = async () => {
+    if (!confirm('Are you sure you want to clear your entire watch history?')) return;
+    
     try {
-      await axios.delete('/api/users/history')
+      await axios.delete('/api/users/history/clear')
       setHistory([])
       toast.success('Watch history cleared')
     } catch (error) {
       toast.error('Failed to clear history')
+    }
+  }
+
+  const deleteFromHistory = async (videoId) => {
+    try {
+      await axios.delete(`/api/users/history/${videoId}`)
+      setHistory(prev => prev.filter(video => video._id !== videoId))
+      toast.success('Video removed from history')
+    } catch (error) {
+      toast.error('Failed to remove video from history')
     }
   }
 
@@ -168,13 +193,21 @@ export default function HistoryPage() {
             <div className="text-center text-gray-400">{error}</div>
           ) : history.length === 0 ? (
             <div className="text-center text-gray-400 min-h-[50vh] flex flex-col items-center justify-center">
-              <ClockRotateLeft className="w-12 h-12 mb-4" />
+              <FontAwesomeIcon 
+                icon={faClockRotateLeft} 
+                className="w-12 h-12 mb-4 text-gray-400" 
+              />
               <p className="text-lg">No watch history found</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {history.map((video, index) => (
-                <VideoCard key={video._id} video={video} index={index} />
+                <VideoCard 
+                  key={video._id} 
+                  video={video} 
+                  index={index}
+                  onDelete={deleteFromHistory}
+                />
               ))}
             </div>
           )}

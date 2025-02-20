@@ -21,10 +21,39 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from 'next/navigation'
 import { BackendContext } from '@/components/Providers'
+import Loading from '@/components/Loading'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 const PlaylistCard = ({ playlist, onEdit, onDelete }) => {
+    const backendData = useContext(BackendContext)
+    const router = useRouter()
+
+    useEffect(() => {
+        // Handle all navigation in one place
+        if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
+          router.replace('/welcome')
+        }
+      }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
+    
+      // Show loading while checking auth
+      if (backendData.isAuthChecking) {
+        return (
+          <div className='min-h-screen flex items-center justify-center'>
+            <Loading />
+          </div>
+        )
+      }
+    
+      // If not logged in, show loading while redirecting
+      if (!backendData.isLoggedIn) {
+        return (
+          <div className='min-h-screen flex items-center justify-center'>
+            <Loading />
+          </div>
+        )
+      }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -32,9 +61,20 @@ const PlaylistCard = ({ playlist, onEdit, onDelete }) => {
       className="bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700/50 hover:border-gray-600/50 transition-all"
     >
       <Link href={`/playlists/${playlist._id}`}>
-        <div className="grid grid-cols-2 gap-1 p-1">
-          {playlist.videos.slice(0, 4).map((videoId, index) => (
-            <div key={videoId} className="aspect-video bg-gray-900/50" />
+        <div className="grid grid-cols-2 gap-1 p-1 aspect-video">
+          {playlist.videos.slice(0, 4).map((video) => (
+            <div key={video._id} className="relative aspect-video bg-gray-900/50 overflow-hidden">
+              <Image
+                src={video.thumbnail}
+                alt="Playlist thumbnail"
+                fill
+                className="object-cover hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+          ))}
+          {/* Fill empty spaces with placeholder if less than 4 videos */}
+          {[...Array(Math.max(0, 4 - playlist.videos.length))].map((_, index) => (
+            <div key={`empty-${index}`} className="aspect-video bg-gray-900/50" />
           ))}
         </div>
         <div className="p-4">
