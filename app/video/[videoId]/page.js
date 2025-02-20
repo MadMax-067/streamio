@@ -488,27 +488,30 @@ export default function VideoPage({ params }) {
                   </div>
                 </Link>
 
-                <Button
-                  onClick={handleSubscribe}
-                  className={`
-                    px-4 py-2 rounded-lg transition-all duration-200 font-medium
-                    ${videoData?.isSubscribed 
-                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300" 
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                    }
-                  `}
-                >
-                  <span className="flex items-center gap-2">
-                    {videoData?.isSubscribed ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Subscribed
-                      </>
-                    ) : (
-                      'Subscribe'
-                    )}
-                  </span>
-                </Button>
+                {/* Only show subscribe button if the video is not owned by current user */}
+                {videoData?.owner?._id !== backendData?.userData?._id && (
+                  <Button
+                    onClick={handleSubscribe}
+                    className={`
+                      px-4 py-2 rounded-lg transition-all duration-200 font-medium
+                      ${videoData?.isSubscribed 
+                        ? "bg-gray-800 hover:bg-gray-700 text-gray-300" 
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }
+                    `}
+                  >
+                    <span className="flex items-center gap-2">
+                      {videoData?.isSubscribed ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Subscribed
+                        </>
+                      ) : (
+                        'Subscribe'
+                      )}
+                    </span>
+                  </Button>
+                )}
               </div>
 
               {/* Action buttons - Horizontal scroll on mobile */}
