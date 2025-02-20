@@ -28,7 +28,7 @@ export default function LoginPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        
+
         // Form validation
         if (!formData.password || (!formData.email && !formData.username)) {
             toast.error('Please provide either email or username, and password')
@@ -42,23 +42,29 @@ export default function LoginPage() {
             const response = await axios.post('/api/users/login', formData, {
                 withCredentials: true
             })
-            
+
             if (response.data.success) {
                 // Update context with user data
                 backendData.setUserData(response.data.data.user)
                 backendData.setIsLoggedIn(true)
                 backendData.setMessage('Login successful')
-                
+
                 toast.success('Welcome back!')
                 router.push('/')
                 router.refresh()
-            } else {
+            }
+            if (response.status === 401) {
+                setIsLoading(false)
+                backendData.setIsLoading(false)
+                toast.error('Invalid username/email or password')
+            }
+            else {
                 throw new Error(response.data.message || 'Login failed')
             }
         } catch (error) {
             backendData.setIsLoggedIn(false)
             backendData.setMessage(error.response?.data?.message || error.message)
-            
+
             // More specific error messages
             if (error.response?.status === 401) {
                 toast.error('Invalid username/email or password')

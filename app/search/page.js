@@ -1,5 +1,5 @@
 "use client"
-import { Suspense, useEffect, useState, useRef, useContext } from 'react'
+import { Suspense, useEffect, useState, useRef, useContext, useCallback } from 'react'
 import axios from 'axios'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -29,26 +29,61 @@ function SearchContent() {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const observer = useRef()
+
+  const lastResultElementRef = useCallback(node => {
+    if (loading) return
+    if (observer.current) observer.current.disconnect()
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+        loadMoreResults()
+      }
+    })
+    if (node) observer.current.observe(node)
+  }, [hasMore, isLoadingMore, query])
+
+  const loadMoreResults = async () => {
+    if (!hasMore || isLoadingMore || !query) return
+    setIsLoadingMore(true)
+    try {
+      const response = await axios.get(`/api/global-search?search=${query}&page=${page + 1}&limit=10`)
+      const newResults = response.data.data.results
+      setResults(prev => [...prev, ...newResults])
+      setHasMore(response.data.data.hasNext)
+      setPage(prev => prev + 1)
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   // Fetch search results whenever 'query' changes
   useEffect(() => {
     const fetchResults = async () => {
-      if (!query) return
+      setLoading(true)
+      setError(null)
       try {
-        setLoading(true)
-        const response = await axios.get(`/api/global-search?search=${encodeURIComponent(query)}`)
+        const response = await axios.get(`/api/global-search?search=${query}&page=1&limit=10`)
         setResults(response.data.data.results)
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setResults([])
-        } else {
-          setError(err.message)
-        }
+        setHasMore(response.data.data.hasNext)
+        setPage(1)
+      } catch (error) {
+        setError(error.message)
       } finally {
         setLoading(false)
       }
     }
-    fetchResults()
+
+    if (query) {
+      fetchResults()
+    } else {
+      setResults([])
+      setHasMore(false)
+    }
   }, [query])
 
   // Update query state whenever the searchParams change
@@ -86,85 +121,96 @@ function SearchContent() {
         Search results for: {query}
       </h1>
       <div className="space-y-6">
-        {results.map((result) => (
-          result.type === 'channel' ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={result._id}
-            >
-              <Link
-                href={`/profile/${result.username}`}
-                className="flex items-center gap-4 p-6 hover:bg-gray-800/50 rounded-xl transition-all duration-200 border border-gray-800/50 backdrop-blur-sm"
-              >
-                <div className="relative w-20 h-20">  {/* Fixed size container */}
-                  <Image
-                    src={result.avatar}
-                    alt={result.username}
-                    fill
-                    className="rounded-full object-cover"
-                    style={{ width: '100%', height: '100%' }}
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-100">{result.fullName}</h3>
-                  <p className="text-blue-400">@{result.username}</p>
-                  <p className="text-sm text-gray-400 mt-1">{result.subscribersCount} subscribers</p>
-                </div>
-              </Link>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={result._id}
-            >
-              <Link
-                href={`/video/${result._id}`}
-                className="flex flex-col md:flex-row gap-6 hover:bg-gray-800/50 rounded-xl transition-all duration-200 p-6 border border-gray-800/50 backdrop-blur-sm"
-              >
-                <div className="relative w-full md:w-64 aspect-video">
-                  <Image
-                    src={result.thumbnail}
-                    alt={result.title}
-                    fill
-                    className="object-cover rounded-lg"
-                  />
-                  <span className="absolute bottom-1 right-1 bg-black/80 px-2 py-1 text-xs rounded">
-                    {Math.floor(result.duration)}:{((result.duration % 1) * 60).toFixed(0).padStart(2, '0')}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-100 line-clamp-2">{result.title}</h3>
-                  <div className="flex items-center gap-3 mt-3">
-                    <Link 
-                      href={`/profile/${result.channel.username}`}
-                      className="flex items-center gap-3 hover:text-blue-400 transition-colors"
-                      onClick={(e) => e.stopPropagation()} // Prevent video link from triggering
-                    >
-                      <div className="relative w-6 h-6">
-                        <Image
-                          src={result.channel.avatar}
-                          alt={result.channel.username}
-                          fill
-                          className="rounded-full object-cover"
-                          style={{ width: '100%', height: '100%' }}
-                        />
+        {results.map((result, index) => {
+          const isLastElement = results.length === index + 1
+          return (
+            <div ref={isLastElement ? lastResultElementRef : null} key={result._id}>
+              {result.type === 'channel' ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Link
+                    href={`/profile/${result.username}`}
+                    className="flex items-center gap-4 p-6 hover:bg-gray-800/50 rounded-xl transition-all duration-200 border border-gray-800/50 backdrop-blur-sm"
+                  >
+                    <div className="relative w-20 h-20">  {/* Fixed size container */}
+                      <Image
+                        src={result.avatar}
+                        alt={result.username}
+                        fill
+                        className="rounded-full object-cover"
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-100">{result.fullName}</h3>
+                      <p className="text-blue-400">@{result.username}</p>
+                      <p className="text-sm text-gray-400 mt-1">{result.subscribersCount} subscribers</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Link
+                    href={`/video/${result._id}`}
+                    className="flex flex-col md:flex-row gap-6 hover:bg-gray-800/50 rounded-xl transition-all duration-200 p-6 border border-gray-800/50 backdrop-blur-sm"
+                  >
+                    <div className="relative w-full md:w-64 aspect-video">
+                      <Image
+                        src={result.thumbnail}
+                        alt={result.title}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                      <span className="absolute bottom-1 right-1 bg-black/80 px-2 py-1 text-xs rounded">
+                        {Math.floor(result.duration)}:{((result.duration % 1) * 60).toFixed(0).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-100 line-clamp-2">{result.title}</h3>
+                      <div className="flex items-center gap-3 mt-3">
+                        <Link 
+                          href={`/profile/${result.channel.username}`}
+                          className="flex items-center gap-3 hover:text-blue-400 transition-colors"
+                          onClick={(e) => e.stopPropagation()} // Prevent video link from triggering
+                        >
+                          <div className="relative w-6 h-6">
+                            <Image
+                              src={result.channel.avatar}
+                              alt={result.channel.username}
+                              fill
+                              className="rounded-full object-cover"
+                              style={{ width: '100%', height: '100%' }}
+                            />
+                          </div>
+                          <p className="text-blue-400 hover:text-blue-300">{result.channel.username}</p>
+                        </Link>
                       </div>
-                      <p className="text-blue-400 hover:text-blue-300">{result.channel.username}</p>
-                    </Link>
-                  </div>
-                  <div className="flex gap-3 text-sm text-gray-400 mt-2">
-                    <span>{result.views} views</span>
-                    <span>•</span>
-                    <span>{formatDistanceToNow(new Date(result.createdAt))} ago</span>
-                  </div>
-                  <p className="text-gray-300 mt-3 line-clamp-2">{result.description}</p>
-                </div>
-              </Link>
-            </motion.div>
+                      <div className="flex gap-3 text-sm text-gray-400 mt-2">
+                        <span>{result.views} views</span>
+                        <span>•</span>
+                        <span>{formatDistanceToNow(new Date(result.createdAt))} ago</span>
+                      </div>
+                      <p className="text-gray-300 mt-3 line-clamp-2">{result.description}</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              )}
+            </div>
           )
-        ))}
+        })}
+
+        {isLoadingMore && (
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <SearchSkeleton key={`loading-${i}`} />
+            ))}
+          </div>
+        )}
 
         {results.length === 0 && query && (
           <NoResults query={query} />
