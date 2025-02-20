@@ -55,6 +55,7 @@ import AuthCheck from '@/components/AuthCheck'
 import { useRouter } from 'next/navigation'
 import { Space_Grotesk } from 'next/font/google'
 import localFont from 'next/font/local'
+import VideoPlayerSettings from '@/components/VideoPlayerSettings'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 const mercenary = localFont({ src: '../../../fonts/mercenaryBold.otf' })
@@ -86,6 +87,10 @@ export default function VideoPage({ params }) {
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false)
   const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' })
   const [showShareDialog, setShowShareDialog] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1)
+  const [qualities] = useState(['1080', '720', '480', '360'])
+  const [selectedQuality, setSelectedQuality] = useState('1080')
+  const [isQualityChanging, setIsQualityChanging] = useState(false)
 
   useEffect(() => {
     // Handle all navigation in one place
@@ -157,6 +162,30 @@ export default function VideoPage({ params }) {
     fetchPlaylists()
 
   }, [slug])
+
+  useEffect(() => {
+    if (playerRef.current) {
+      playerRef.current.getInternalPlayer().playbackRate = playbackSpeed
+    }
+  }, [playbackSpeed])
+
+  useEffect(() => {
+    if (playerRef.current) {
+      setIsQualityChanging(true)
+      const currentTime = playerRef.current.getCurrentTime()
+      
+      // Update video source with new quality
+      const newUrl = `${videoData?.videoFile}?quality=${selectedQuality}`
+      playerRef.current.getInternalPlayer().src = newUrl
+      
+      // Restore playback position and state
+      playerRef.current.seekTo(currentTime)
+      if (playing) {
+        playerRef.current.getInternalPlayer().play()
+      }
+      setIsQualityChanging(false)
+    }
+  }, [selectedQuality])
 
   const handlePlayPause = () => setPlaying(!playing)
   const handleVolumeChange = (value) => {
@@ -376,8 +405,8 @@ export default function VideoPage({ params }) {
              <div className="relative aspect-video bg-black md:rounded-xl overflow-hidden">
               <ReactPlayer
                 ref={playerRef}
-                url={videoUrl}
-                playing={playing}  // This will now start as true
+                url={`${videoUrl}?quality=${selectedQuality}`}
+                playing={playing && !isQualityChanging}
                 volume={volume}
                 muted={muted}
                 width="100%"
@@ -391,64 +420,31 @@ export default function VideoPage({ params }) {
                       disablePictureInPicture: true,
                       autoPlay: true,  // Added this line
                     },
+                    forceVideo: true,
+                    qualities: qualities.map(q => ({
+                      label: `${q}p`,
+                      value: q,
+                    })),
                   },
                 }}
               />
-              {/* Custom Controls */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Progress Bar */}
-                <Slider
-                  value={[played]}
-                  max={1}
-                  step={0.001}
-                  onValueChange={handleSeekChange}
-                  className="mb-4 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
-                />
-
-                <div className="flex items-center gap-4">
-                  {/* Play/Pause */}
-                  <Button variant="ghost" size="icon" onClick={handlePlayPause} className="hover:bg-gray-900/80 transition-colors">
-                    {playing ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                  </Button>
-
-                  {/* Skip Buttons */}
-                  <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
-                    <SkipBack className="w-5 h-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
-                    <SkipForward className="w-5 h-5" />
-                  </Button>
-
-                  {/* Volume Control */}
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={handleToggleMute} className="hover:bg-gray-900/80 transition-colors">
-                      {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                    </Button>
-                    <Slider
-                      value={[muted ? 0 : volume]}
-                      max={1}
-                      step={0.1}
-                      onValueChange={handleVolumeChange}
-                      className="w-24 [&>span:first-child]:h-1 [&>span:first-child]:bg-blue-500/30 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3 [&_[role=slider]]:border-0 [&>span:first-child_span]:bg-blue-500"
-                    />
-                  </div>
-
-                  {/* Time Display */}
-                  <span className="text-sm">
-                    {formatTime(played * duration)} / {formatTime(duration)}
-                  </span>
-
-                  {/* Settings & Fullscreen */}
-                  <div className="ml-auto flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="hover:bg-gray-900/80 transition-colors">
-                      <Settings className="w-5 h-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen} className="hover:bg-gray-900/80 transition-colors">
-                      <Maximize2 className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <VideoPlayerSettings
+                playing={playing}
+                played={played}
+                volume={volume}
+                muted={muted}
+                duration={duration}
+                onPlayPause={handlePlayPause}
+                onSeek={handleSeekChange}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={handleToggleMute}
+                onToggleFullscreen={handleToggleFullscreen}
+                playbackSpeed={playbackSpeed}
+                setPlaybackSpeed={setPlaybackSpeed}
+                quality={selectedQuality}
+                qualities={qualities}
+                onQualityChange={setSelectedQuality}
+              />
             </div>
           </div>
 
