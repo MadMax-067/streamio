@@ -1,5 +1,5 @@
 "use client"
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, Suspense } from 'react'
 import { BackendContext } from '@/components/Providers'
 import axios from 'axios'
 import { Space_Grotesk } from 'next/font/google'
@@ -9,7 +9,7 @@ import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
 import VideoUpload from '@/components/VideoUpload'
 import BottomBar from '@/components/BottomBar'
-import VideosList from '@/components/VideosList'
+import VideoCard from '@/components/VideoCard'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
@@ -89,12 +89,31 @@ export default function VideosPage() {
               </p>
             </div>
           ) : (
-            <VideosList 
-              videos={videos}
-              userData={userData}
-              isOwner={true}
-              onVideoUpdate={fetchVideos}
-            />
+            <div className="px-4 md:px-8">
+              <div className="flex flex-wrap justify-evenly gap-4">
+                <Suspense fallback={<div><span className='loading loading-spinner loading-lg'></span></div>}>
+                  {videos.map((video) => (
+                    <div className="w-fit" key={video._id}>
+                      <VideoCard
+                        videoId={video._id}
+                        title={video.title}
+                        description={video.description}
+                        thumbnail={video.thumbnail}
+                        channelName={userData.fullName}
+                        channelUsername={userData.username}
+                        views={video.views || 0}
+                        avatar={userData.avatar}
+                        duration={video.duration}
+                        createdAt={video.createdAt}
+                        isOwner={true}
+                        isPublished={video.isPublished}
+                        onVideoDeleted={fetchVideos}
+                      />
+                    </div>
+                  ))}
+                </Suspense>
+              </div>
+            </div>
           )}
         </div>
       </div>
