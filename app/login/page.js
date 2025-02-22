@@ -52,13 +52,7 @@ export default function LoginPage() {
                 toast.success('Welcome back!')
                 router.push('/')
                 router.refresh()
-            }
-            if (response.status === 401) {
-                setIsLoading(false)
-                backendData.setIsLoading(false)
-                toast.error('Invalid username/email or password')
-            }
-            else {
+            } else {
                 throw new Error(response.data.message || 'Login failed')
             }
         } catch (error) {
