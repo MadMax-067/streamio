@@ -79,13 +79,13 @@ const BottomBar = () => {
                   <span>Your Playlists</span>
                 </DropdownMenuItem>
               </Link>
-              <Link href={`/profile/${backendData?.userData?.username}/videos`}>
+              <Link href={`/your-videos`}>
                 <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-gray-200 hover:bg-gray-700/50 transition-colors">
                   <FontAwesomeIcon icon={faVideo} className="w-5 h-5" />
                   <span>Your Videos</span>
                 </DropdownMenuItem>
               </Link>
-              <Link href="/liked">
+              <Link href="/liked-videos">
                 <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-gray-200 hover:bg-gray-700/50 transition-colors">
                   <FontAwesomeIcon icon={faHeart} className="w-5 h-5" />
                   <span>Liked Videos</span>
