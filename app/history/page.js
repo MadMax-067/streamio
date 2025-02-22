@@ -80,7 +80,7 @@ const VideoCard = ({ video, index, onDelete }) => {
             <h3 className="font-medium text-base mb-1 line-clamp-2">
               {video.title}
             </h3>
-            <Link 
+            <Link
               href={`/profile/${video.owner.username}`}
               className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
             >
@@ -126,7 +126,7 @@ export default function HistoryPage() {
 
   const clearHistory = async () => {
     if (!confirm('Are you sure you want to clear your entire watch history?')) return;
-    
+
     try {
       await axios.delete('/api/users/history/clear')
       setHistory([])
@@ -161,58 +161,58 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className={`min-h-screen pb-20 md:pb-0 ${spaceGrotesk.className}`}>
-      <div className="px-4 md:container md:mx-auto py-4 md:py-6">
-        <div className="flex flex-col max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <FontAwesomeIcon 
-                icon={faClockRotateLeft} 
-                className="w-6 h-6 text-gray-400" 
-              />
-              <h1 className="text-2xl md:text-3xl font-bold">Watch History</h1>
+      <div className={`min-h-screen pb-[4.5rem] md:pb-0 ${spaceGrotesk.className}`}>
+        <div className="px-3 md:px-4 md:container md:mx-auto py-3 md:py-6">
+          <div className="flex flex-col max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <FontAwesomeIcon
+                  icon={faClockRotateLeft}
+                  className="w-6 h-6 text-gray-400"
+                />
+                <h1 className="text-2xl md:text-3xl font-bold">Watch History</h1>
+              </div>
+              {history.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={clearHistory}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden md:inline">Clear History</span>
+                </Button>
+              )}
             </div>
-            {history.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={clearHistory}
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden md:inline">Clear History</span>
-              </Button>
+
+            {loading ? (
+              <div className="flex items-center justify-center min-h-[50vh]">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              </div>
+            ) : error ? (
+              <div className="text-center text-gray-400">{error}</div>
+            ) : history.length === 0 ? (
+              <div className="text-center text-gray-400 min-h-[50vh] flex flex-col items-center justify-center">
+                <FontAwesomeIcon
+                  icon={faClockRotateLeft}
+                  className="w-12 h-12 mb-4 text-gray-400"
+                />
+                <p className="text-lg">No watch history found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {history.map((video, index) => (
+                  <VideoCard
+                    key={video._id}
+                    video={video}
+                    index={index}
+                    onDelete={deleteFromHistory}
+                  />
+                ))}
+              </div>
             )}
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center min-h-[50vh]">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center text-gray-400">{error}</div>
-          ) : history.length === 0 ? (
-            <div className="text-center text-gray-400 min-h-[50vh] flex flex-col items-center justify-center">
-              <FontAwesomeIcon 
-                icon={faClockRotateLeft} 
-                className="w-12 h-12 mb-4 text-gray-400" 
-              />
-              <p className="text-lg">No watch history found</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {history.map((video, index) => (
-                <VideoCard 
-                  key={video._id} 
-                  video={video} 
-                  index={index}
-                  onDelete={deleteFromHistory}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </div>
-    </div>
   )
 }
