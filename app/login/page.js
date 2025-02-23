@@ -45,10 +45,9 @@ export default function LoginPage() {
 
             if (response.data.success) {
                 // Update context with user data
+                backendData.authUtils.setStoredAuth(response.data.data)
                 backendData.setUserData(response.data.data.user)
                 backendData.setIsLoggedIn(true)
-                backendData.setMessage('Login successful')
-
                 toast.success('Welcome back!')
                 router.push('/')
                 router.refresh()
