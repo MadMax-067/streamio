@@ -1,1 +1,1 @@
-## A Video streaming full stack project
+## A Video streaming service full stack project
