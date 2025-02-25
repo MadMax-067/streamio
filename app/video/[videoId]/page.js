@@ -61,9 +61,13 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 const mercenary = localFont({ src: '../../../fonts/mercenaryBold.otf' })
 
 export default function VideoPage({ params }) {
+  // 1. All hooks at the top level
   const router = useRouter()
   const playerRef = useRef(null)
-  const [playing, setPlaying] = useState(true)  // Changed from false to true
+  const backendData = useContext(BackendContext)
+  
+  // All useState hooks
+  const [playing, setPlaying] = useState(true)
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [played, setPlayed] = useState(0)
@@ -76,8 +80,6 @@ export default function VideoPage({ params }) {
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState("")
   const [likes, setLikes] = useState(0)
-  const slug = params.videoId
-  const backendData = useContext(BackendContext)
   const [videoUrl, setVideoUrl] = useState("")
   const [videoData, setVideoData] = useState(null)
   const [commentLikes, setCommentLikes] = useState({})
@@ -92,48 +94,29 @@ export default function VideoPage({ params }) {
   const [selectedQuality, setSelectedQuality] = useState('1080')
   const [isQualityChanging, setIsQualityChanging] = useState(false)
 
+  // All useEffect hooks
   useEffect(() => {
-    // Handle all navigation in one place
     if (!backendData.isAuthChecking && !backendData.isLoggedIn) {
       router.replace('/welcome')
     }
   }, [backendData.isAuthChecking, backendData.isLoggedIn, router])
 
-  // Show loading while checking auth
-  if (backendData.isAuthChecking) {
-    return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <Loading />
-      </div>
-    )
-  }
-
-  // If not logged in, show loading while redirecting
-  if (!backendData.isLoggedIn) {
-    return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <Loading />
-      </div>
-    )
-  }
-  
   useEffect(() => {
     const fetchVideoData = async () => {
-      if (!slug) return
+      if (!params.videoId) return
       setIsLoading(true)
       try {
-        const videoResponse = await axios.get(`/api/videos/${slug}`)
+        const videoResponse = await axios.get(`/api/videos/${params.videoId}`)
         const videoData = videoResponse.data?.data
         setVideoUrl(videoData?.videoFile || "")
         setVideoData(videoData)
         setIsLiked(videoData?.isLiked || false)
         setLikes(videoData?.likesCount || 0)
         
-        // Check if video exists in any playlist
         const playlistsResponse = await axios.get('/api/playlist/user')
         const userPlaylists = playlistsResponse.data?.data || []
         const isVideoSaved = userPlaylists.some(playlist => 
-          playlist.videos.some(video => video._id === slug)
+          playlist.videos.some(video => video._id === params.videoId)
         )
         setIsSaved(isVideoSaved)
       } catch (error) {
@@ -145,23 +128,22 @@ export default function VideoPage({ params }) {
     }
 
     const fetchComments = async () => {
-      if (!slug) return
+      if (!params.videoId) return
       try {
-        const commentsResponse = await axios.get(`/api/comments/${slug}`)
-        const fetchedComments = commentsResponse.data?.data?.comments || []
-        setComments(fetchedComments)
+        const commentsResponse = await axios.get(`/api/comments/${params.videoId}`)
+        setComments(commentsResponse.data?.data?.comments || [])
       } catch (error) {
         console.error('Comments fetch error:', error)
-        // Don't set the main error state, just log it
-        setComments([]) // Set empty comments instead of breaking
+        setComments([])
       }
     }
 
-    fetchVideoData()
-    fetchComments() // Call separately
-    fetchPlaylists()
-
-  }, [slug])
+    if (backendData.isLoggedIn) {
+      fetchVideoData()
+      fetchComments()
+      fetchPlaylists()
+    }
+  }, [params.videoId, backendData.isLoggedIn])
 
   useEffect(() => {
     if (playerRef.current) {
@@ -235,8 +217,8 @@ export default function VideoPage({ params }) {
 
   const handleLike = async () => {
     try {
-      await axios.post(`/api/likes/toggle/v/${slug}`)
-      const response = await axios.get(`/api/videos/${slug}`)
+      await axios.post(`/api/likes/toggle/v/${params.videoId}`)
+      const response = await axios.get(`/api/videos/${params.videoId}`)
       const data = response.data?.data
       setIsLiked(data?.isLiked || false)
       setLikes(data?.likesCount || 0)
@@ -249,7 +231,7 @@ export default function VideoPage({ params }) {
     try {
       await axios.post(`/api/likes/toggle/c/${commentId}`)
       // Fetch fresh comments after like
-      const commentsResponse = await axios.get(`/api/comments/${slug}`)
+      const commentsResponse = await axios.get(`/api/comments/${params.videoId}`)
       setComments(commentsResponse.data?.data?.comments || [])
     } catch (error) {
       console.error(error)
@@ -262,10 +244,10 @@ export default function VideoPage({ params }) {
     if (!trimmedComment) return
 
     try {
-      await axios.post(`/api/comments/${slug}`, {
+      await axios.post(`/api/comments/${params.videoId}`, {
         content: trimmedComment,
       })
-      const response = await axios.get(`/api/comments/${slug}`)
+      const response = await axios.get(`/api/comments/${params.videoId}`)
       setComments(response.data?.data?.comments || [])
       setNewComment("")
     } catch (error) {
@@ -304,7 +286,7 @@ export default function VideoPage({ params }) {
 
   const handleAddToPlaylist = async (playlistId) => {
     try {
-      await axios.patch(`/api/playlist/add/${slug}/${playlistId}`)
+      await axios.patch(`/api/playlist/add/${params.videoId}/${playlistId}`)
       setIsSaved(true)
     } catch (error) {
       console.error('Failed to add to playlist:', error)
@@ -362,7 +344,7 @@ export default function VideoPage({ params }) {
       
       // Add video to Watch Later playlist
       if (watchLaterPlaylist) {
-        await axios.patch(`/api/playlist/add/${slug}/${watchLaterPlaylist._id}`)
+        await axios.patch(`/api/playlist/add/${params.videoId}/${watchLaterPlaylist._id}`)
         toast.success("Added to Watch Later")
         fetchPlaylists() // Refresh playlists
       }
@@ -388,12 +370,22 @@ export default function VideoPage({ params }) {
     return count
   }
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"> <Loading/> </div>
+  // Render loading state
+  if (backendData.isAuthChecking || isLoading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <Loading />
+      </div>
+    )
   }
 
+  // Render error state
   if (error) {
-    return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500">
+        {error}
+      </div>
+    )
   }
 
   return (
