@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { BackendContext } from '@/components/Providers'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { ImageIcon, X } from 'lucide-react'
+import { ImageIcon, X, Eye, EyeOff } from 'lucide-react' // Add this import
 import Image from 'next/image'
 import axios from 'axios'
 import PasswordRequirements from '@/components/PasswordRequirements'
@@ -15,6 +15,7 @@ export default function SignUpPage() {
     const backendData = useContext(BackendContext)
     const [isDragging, setIsDragging] = useState(false)
     const [avatarPreview, setAvatarPreview] = useState(null)
+    const [showPassword, setShowPassword] = useState(false) // Add this state
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -145,7 +146,7 @@ export default function SignUpPage() {
                 // Request made but no response
                 toast.error('No response from server. Please try again.')
             } else {
-                // Error in request setup
+                // Error in request setup   
                 toast.error('Error creating account. Please try again.')
             }
         } finally {
@@ -284,15 +285,28 @@ export default function SignUpPage() {
                                 <label className="block text-sm font-medium mb-2" htmlFor="password">
                                     Password
                                 </label>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    className="w-full px-4 py-3 rounded-lg bg-gray-700/50 border border-gray-600 text-gray-100 focus:outline-none focus:border-blue-500 transition"
-                                    placeholder="Create a password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        id="password"
+                                        name="password"
+                                        className="w-full px-4 py-3 rounded-lg bg-gray-700/50 border border-gray-600 text-gray-100 focus:outline-none focus:border-blue-500 transition pr-10"
+                                        placeholder="Create a password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                                 <div className="mt-2 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
                                     <h3 className="text-sm font-medium mb-2 text-gray-300">Password Requirements:</h3>
                                     <PasswordRequirements password={formData.password} />
