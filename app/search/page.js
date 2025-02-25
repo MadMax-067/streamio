@@ -17,6 +17,7 @@ import NoResults from '@/components/NoResults'
 import AuthCheck from '@/components/AuthCheck'
 import { Space_Grotesk } from 'next/font/google'
 import localFont from 'next/font/local'
+import { Search, AlertCircle } from 'lucide-react' // Add this import
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 const mercenary = localFont({ src: '../../fonts/mercenaryBold.otf' })
@@ -102,14 +103,65 @@ function SearchContent() {
   
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-red-500 text-center"
+          className="max-w-lg w-full"
         >
-          <h2 className="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
-          <p>{error}</p>
+          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 text-center">
+            {error.includes('404') ? (
+              <>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <Search className="w-8 h-8 text-blue-400" />
+                </div>
+                <h2 className={`${mercenary.className} text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+                  No Results Found
+                </h2>
+                <p className="text-gray-400 mb-6">
+                  We couldn't find what you're looking for. Try:
+                </p>
+                <ul className="text-gray-400 mb-6 space-y-2 text-left mx-auto max-w-xs">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                    Different keywords or phrases
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                    Checking your spelling
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                    Using more general terms
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => window.history.back()}
+                  className="bg-blue-600 hover:bg-blue-700 transition-colors"
+                >
+                  Go Back
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <AlertCircle className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className={`${mercenary.className} text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-red-400 to-pink-500 text-transparent bg-clip-text`}>
+                  Oops! Something went wrong
+                </h2>
+                <p className="text-gray-400 mb-6">
+                  {error || 'An unexpected error occurred while searching. Please try again.'}
+                </p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </Button>
+              </>
+            )}
+          </div>
         </motion.div>
       </div>
     )
