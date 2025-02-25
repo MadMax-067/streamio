@@ -51,12 +51,17 @@ function SearchContent() {
     setIsLoadingMore(true)
     try {
       const response = await axios.get(`/api/global-search?search=${query}&page=${page + 1}&limit=10`)
-      const newResults = response.data.data.results
-      setResults(prev => [...prev, ...newResults])
-      setHasMore(response.data.data.hasNext)
-      setPage(prev => prev + 1)
+      if (response.data.success) {
+        const newResults = response.data.data.results || []
+        setResults(prev => [...prev, ...newResults])
+        setHasMore(response.data.data.hasNext)
+        setPage(prev => prev + 1)
+      } else {
+        setHasMore(false)
+      }
     } catch (error) {
-      setError(error.message)
+      setHasMore(false)
+      setError(error?.response?.status === 404 ? '404' : error.message)
     } finally {
       setIsLoadingMore(false)
     }
@@ -69,11 +74,19 @@ function SearchContent() {
       setError(null)
       try {
         const response = await axios.get(`/api/global-search?search=${query}&page=1&limit=10`)
-        setResults(response.data.data.results)
-        setHasMore(response.data.data.hasNext)
-        setPage(1)
+        if (response.data.success) {
+          setResults(response.data.data.results || []) // Ensure we always have an array
+          setHasMore(response.data.data.hasNext)
+          setPage(1)
+        } else {
+          setError('No results found')
+          setResults([])
+          setHasMore(false)
+        }
       } catch (error) {
-        setError(error.message)
+        setError(error?.response?.status === 404 ? '404' : error.message)
+        setResults([])
+        setHasMore(false)
       } finally {
         setLoading(false)
       }
@@ -101,6 +114,50 @@ function SearchContent() {
     </div>
   )
   
+  if (error === '404' || (results && results.length === 0 && query)) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-lg w-full"
+        >
+          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <Search className="w-8 h-8 text-blue-400" />
+            </div>
+            <h2 className={`${mercenary.className} text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text`}>
+              No Results Found
+            </h2>
+            <p className="text-gray-400 mb-6">
+              We couldn't find what you're looking for. Try:
+            </p>
+            <ul className="text-gray-400 mb-6 space-y-2 text-left mx-auto max-w-xs">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                Different keywords or phrases
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                Checking your spelling
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                Using more general terms
+              </li>
+            </ul>
+            <Button
+              onClick={() => window.history.back()}
+              className="bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              Go Back
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
   if (error) {
     return (
       <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
